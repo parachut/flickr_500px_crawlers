@@ -67,7 +67,6 @@ async function runBigQuery(items) {
       tags: items.tags,
       url: items.url,
       labels: labelAndScores
-      //exif: null
     }
   ];
   if (items.camera != "") {
