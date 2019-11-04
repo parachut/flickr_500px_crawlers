@@ -1,3 +1,4 @@
+"use strict";
 require("dotenv").config();
 const timestamp = require("time-stamp");
 const vision = require("@google-cloud/vision");
@@ -22,7 +23,7 @@ async function wait(ms) {
 function extractItems() {
   const extractedElements = document.querySelectorAll(".photo_link");
 
-  const items = [];
+  let items = [];
   for (let element of extractedElements) {
     items.push(element.getAttribute("href"));
   }
@@ -34,18 +35,18 @@ function extractItems() {
 //             reading labels and adding element to big query
 //---------------------------------------------------------
 async function runBigQuery(items) {
-  // Performs label detection on the gcs file
-  const [result] = await client.labelDetection(`${items.imgSrc}`);
-  const labels = result.labelAnnotations;
-  let labelAndScores = [];
-  for (let i = 0; i < labels.length; i++) {
-    labelAndScores.push({
-      name: labels[i].description,
-      score: Math.round(labels[i].score * 100)
-    });
-  }
-  //adding to big query
   if (items.camera != "") {
+    // Performs label detection on the gcs file
+    const [result] = await client.labelDetection(`${items.imgSrc}`);
+    const labels = result.labelAnnotations;
+    let labelAndScores = [];
+    for (let i = 0; i < labels.length; i++) {
+      labelAndScores.push({
+        name: labels[i].description,
+        score: Math.round(labels[i].score * 100)
+      });
+    }
+    //adding to big query
     try {
       await bigQueryClient
         .dataset(datasetId)
@@ -79,6 +80,8 @@ async function runBigQuery(items) {
     } catch (e) {
       console.log(JSON.stringify(e));
     }
+  } else {
+    console.log("NO CAM");
   }
 }
 //---------------------------------------------------------
@@ -101,7 +104,6 @@ async function scrapeInfiniteScrollItems(
         `document.body.scrollHeight > ${previousHeight}`
       );
       await page.waitFor(scrollDelay);
-      console.log(items);
     }
   } catch (e) {}
 
@@ -121,15 +123,12 @@ async function scrapeInfiniteScrollItems(
   await page.goto("https://500px.com/popular", { waitUntil: "networkidle2" });
 
   // Scroll and extract items from the page.
-  const items = await scrapeInfiniteScrollItems(
-    page,
-    extractItems,
-    20
-  );
-
+  const items = await scrapeInfiniteScrollItems(page, extractItems, 200000000);
+  await page.close();
+  await browser.close();
+  //scraping
   const scrape = await scraping(items);
 
-  // Close the browser.
   await browser.close();
 })();
 
@@ -140,8 +139,9 @@ async function scraping(items) {
   });
   const page = await browserScrape.newPage();
   page.setViewport({ width: 1280, height: 926 });
-
+  console.log("---------------------------------------------");
   console.log(items.length);
+  console.log("---------------------------------------------");
 
   for (let k = 0; k < items.length; k++) {
     try {
@@ -156,7 +156,7 @@ async function scraping(items) {
         timeout: 120000
       });
 
-      let  page500 = await page.evaluate(() => {
+      let page500 = await page.evaluate(() => {
         //TITLE
         const title1 = document.querySelector("title");
         let title;
@@ -214,7 +214,7 @@ async function scraping(items) {
         const likesString12 = document.querySelector(
           '*[class^="Elements__PhotoButton"] a'
         );
-          let likes;
+        let likes;
         if (!likesString12) {
           likes = null;
         } else {
@@ -227,7 +227,7 @@ async function scraping(items) {
         const commString = document.querySelector(
           'h4[class^="StyledTypography__HeadingSmall"]'
         );
-          let comments;
+        let comments;
         if (!commString) {
           comments = null;
         } else {
@@ -236,13 +236,13 @@ async function scraping(items) {
 
         //IMGSRC
         const imgSrcSearch = document.querySelector("img.photo-show__img");
-        let imgSrc
-        let img;
+        let imgSrc;
+        
         if (!imgSrcSearch) {
           imgSrc = null;
         } else {
-          img = imgSrcSearch.getAttribute("src");
-          imgSrc = img;
+          
+          imgSrc = imgSrcSearch.getAttribute("src");
         }
 
         //TAGS
@@ -284,20 +284,16 @@ async function scraping(items) {
             cameraArray[r] = { name: cameraSearch[r].innerText };
           }
           if (!cameraArray[1]) {
-        
             if (!tryArray[0].name.endsWith("mm")) {
               camera = tryArray[0].name;
             } else {
-              camera = null;
+              camera = "";
             }
           } else {
             camera = cameraArray[1].name;
           }
         }
 
-        //_________________________________________________________
-        ///////work on lenses !!!!!
-        //Lens
         const lensesSearch = document.querySelectorAll(
           'a[href^="https://500px.com/gear/lenses/"] span'
         );
@@ -311,7 +307,6 @@ async function scraping(items) {
           }
 
           if (!lensArray[1]) {
-         
             if (!cameraArray[1]) {
               if (tryArray[1] === undefined) {
                 lens = null;
@@ -329,8 +324,6 @@ async function scraping(items) {
             lens = lensArray[1].name;
           }
         }
-        //_________________________________________________________
-        ///////work on lenses !!!!!
 
         //getting all the styled boxes
         const gearNotHref = document.querySelectorAll(
@@ -349,7 +342,7 @@ async function scraping(items) {
         const categorySearch = document.querySelector(
           'a[href^="https://500px.com/popular/"] span'
         );
-          let category;
+        let category;
         if (!categorySearch) {
           category = null;
         } else {
@@ -371,7 +364,7 @@ async function scraping(items) {
         const photographerLinkSearch = document.querySelector(
           'p[class^="StyledTypography__Paragraph"] a'
         );
-        let photographerLink
+        let photographerLink;
         if (!photographerLinkSearch) {
           photographerLink = null;
         } else {
@@ -434,10 +427,9 @@ async function scraping(items) {
       }
 
       delete page500.gear;
-
-      if(page500.camera!='')
-      {await runBigQuery(page500);}
-      else{console.log("No Camera - No BigQuery")}
+      console.log("/////////////////////////////");
+      console.log(page500.url);
+      let bigQueryRun = await runBigQuery(page500);
       await wait(1500);
     } catch (e) {
       console.log(e);
@@ -446,5 +438,5 @@ async function scraping(items) {
 
   debugger;
   await page.close();
-  await browser.close();
+  await browserScrape.close();
 }
