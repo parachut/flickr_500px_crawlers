@@ -112,11 +112,11 @@ function getNextLink() {
 function scrape() {
   //TITLE
   let title;
-  const title1 = document.querySelector("h1");
-  if (!title1) {
+  const titleSearch = document.querySelector("h1");
+  if (!titleSearch) {
     title = null;
   } else {
-    title = title1.innerText;
+    title = titleSearch.innerText;
   }
 
   //Desc
@@ -419,6 +419,7 @@ async function scrapePages(data) {
 
       await runBigQuery(scraping);
 
+      //just give a little bit time
       await wait(4000);
     } catch (e) {
       console.log(e);
@@ -427,6 +428,7 @@ async function scrapePages(data) {
 
     const mu = process.memoryUsage();
     console.log(mu);
+
     // heapdump.writeSnapshot(function(err, filename) {
     //   console.log('dump written to', filename);
     // });
@@ -438,8 +440,6 @@ async function scrapePages(data) {
 //---------------------------------------------------------
 //             scroll function
 //---------------------------------------------------------
-
-main();
 
 async function main(Link) {
   Link = StartLink;
@@ -497,3 +497,5 @@ async function main(Link) {
     console.log("DONE");
   }
 }
+
+main();
