@@ -38,7 +38,7 @@ async function runBigQuery(items) {
   const [result] = await client.labelDetection(`${items.imgSrc}`);
   const labels = result.labelAnnotations;
   let labelAndScores = [];
-  for (var i = 0; i < labels.length; i++) {
+  for (let i = 0; i < labels.length; i++) {
     labelAndScores.push({
       name: labels[i].description,
       score: Math.round(labels[i].score * 100)
@@ -156,7 +156,7 @@ async function scraping(items) {
         timeout: 120000
       });
 
-      var page500 = await page.evaluate(() => {
+      let  page500 = await page.evaluate(() => {
         //TITLE
         const title1 = document.querySelector("title");
         let title;
@@ -175,7 +175,7 @@ async function scraping(items) {
         if (!dateSearch) {
           dateTaken = null;
         } else {
-          for (var z = 0; z < dateSearch.length; z++) {
+          for (let z = 0; z < dateSearch.length; z++) {
             dateArray[z] = { name: dateSearch[z].innerText };
           }
           if (!dateArray[2]) {
@@ -249,7 +249,7 @@ async function scraping(items) {
         const tagsSearch = document.querySelectorAll(
           '*[class^="Elements__PhotoTag"] p'
         );
-        var tags = [];
+        let tags = [];
         if (!tagsSearch) {
           tags = null;
         } else {
@@ -262,7 +262,7 @@ async function scraping(items) {
         const trySearch = document.querySelectorAll(
           '*[data-id^="photo-gear"] p'
         );
-        var tryArray = [];
+        let tryArray = [];
         if (!trySearch) {
           tryArray[0] = { cam: "" };
         } else {
@@ -284,7 +284,7 @@ async function scraping(items) {
             cameraArray[r] = { name: cameraSearch[r].innerText };
           }
           if (!cameraArray[1]) {
-            //var camera = "";
+        
             if (!tryArray[0].name.endsWith("mm")) {
               camera = tryArray[0].name;
             } else {
@@ -306,12 +306,12 @@ async function scraping(items) {
         if (!lensesSearch) {
           lens = null;
         } else {
-          for (var u = 0; u < lensesSearch.length; u++) {
+          for (let u = 0; u < lensesSearch.length; u++) {
             lensArray[u] = { name: lensesSearch[u].innerText };
           }
 
           if (!lensArray[1]) {
-            //var lens = "";
+         
             if (!cameraArray[1]) {
               if (tryArray[1] === undefined) {
                 lens = null;

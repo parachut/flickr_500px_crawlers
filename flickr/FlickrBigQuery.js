@@ -79,6 +79,7 @@ function getNextLink() {
     'a[data-track^="explore-page-back"]'
   );
 
+  let getNexPageLink;
   if (!getNexPage) {
     console.log("No More");
   } else {
