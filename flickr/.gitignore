@@ -1,0 +1,15 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+.env
+
+google.json
+mongo.js
+google-vision.js
+FlickrLinksMongo.js
+FlickrLinksBigQueryDe.js
+
+FlickrLinksDaily.js
+
+/Basic
