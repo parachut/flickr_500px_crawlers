@@ -4,10 +4,14 @@ const timestamp = require("time-stamp");
 const vision = require("@google-cloud/vision");
 const { BigQuery } = require("@google-cloud/bigquery");
 const puppeteer = require("puppeteer");
+const bigQueryClient = new BigQuery();
+const datasetId = "crawler_500px_flickr";
+const tableId = "posts";
+const client = new vision.ImageAnnotatorClient();
 var heapdump = require("heapdump");
 let previousHeight;
 let scrollDelay = 1500;
-var StartLink = `https://www.flickr.com/explore/2018/12/17`;
+var StartLink = `https://www.flickr.com/explore/2018/12/16`;
 var EndLink = `https://www.flickr.com/explore/2017/12/30`;
 //---------------------------------------------------------
 //             wait function
@@ -22,10 +26,8 @@ async function wait(ms) {
 //---------------------------------------------------------
 async function runBigQuery(items) {
   // Performs label detection on the gcs file
-  const client = new vision.ImageAnnotatorClient();
   const [result] = await client.labelDetection(`${items.imgSrc}`);
   let labels = result.labelAnnotations;
-
   //create object with all names and scores for labels
   let labelAndScores = [];
   for (let i = 0; i < labels.length; i++) {
@@ -35,11 +37,6 @@ async function runBigQuery(items) {
     });
   }
   //adding to big query
-  const bigQueryClient = new BigQuery();
-  const datasetId = "crawler_500px_flickr";
-  const tableId = "posts";
-
-  if (items.camera != "") {
     try {
       await bigQueryClient
         .dataset(datasetId)
@@ -73,20 +70,7 @@ async function runBigQuery(items) {
     } catch (e) {
       console.log(JSON.stringify(e));
     }
-  } else {
-    console.log("No Camera");
-    items = null;
-    labelAndScores = null;
-  }
 
-  //trying to empty the variables
-  labelAndScores = [];
-  labelAndScores = labelAndScores;
-
-  labels = [];
-  labels = labels;
-  items = {};
-  items = items;
 }
 //---------------------------------------------------------
 //             getting link from the button
@@ -402,7 +386,7 @@ async function scrapePages(data) {
   const pageScrape = await browserScrape.newPage();
   pageScrape.setViewport({ width: 1280, height: 1200 });
 
-  for (let i = 275; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     try {
       console.log("---------------------------------------------");
       console.log("Picture Number: " + i);
@@ -416,29 +400,23 @@ async function scrapePages(data) {
       });
 
       let scraping = await pageScrape.evaluate(scrape);
-
-      await runBigQuery(scraping);
-
-      //just give a little bit time
-      await wait(4000);
+      if(scraping.camera!=''){
+      await runBigQuery(scraping);}
+      else{
+        scraping=null;
+        console.log("No Camera - No Big Query")
+      }
     } catch (e) {
       console.log(e);
     }
     await wait(2000);
-
-    const mu = process.memoryUsage();
-    console.log(mu);
-
-    // heapdump.writeSnapshot(function(err, filename) {
-    //   console.log('dump written to', filename);
-    // });
   }
 
   await pageScrape.close();
   await browserScrape.close();
 }
 //---------------------------------------------------------
-//             scroll function
+//             main function
 //---------------------------------------------------------
 
 async function main(Link) {
