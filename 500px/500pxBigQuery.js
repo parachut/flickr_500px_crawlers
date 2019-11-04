@@ -42,7 +42,7 @@ async function runBigQuery(items) {
     });
   }
   //adding to big query
-  const bigqueryClient = new BigQuery();
+  const bigQueryClient = new BigQuery();
   const datasetId = "crawler_500px_flickr";
   const tableId = "posts";
   const row = [
@@ -71,7 +71,7 @@ async function runBigQuery(items) {
   ];
   if (items.camera != "") {
     try {
-      await bigqueryClient
+      await bigQueryClient
         .dataset(datasetId)
         .table(tableId)
         .insert(row);
@@ -320,7 +320,7 @@ async function scraping(items) {
         //_________________________________________________________
         ///////work on lenses !!!!!
 
-        //getting all the styledboxes
+        //getting all the styled boxes
         const gearNotHref = document.querySelectorAll(
           '*[data-id^="photo-gear"] p'
         );
