@@ -1,7 +1,11 @@
 require("dotenv").config();
 const timestamp = require("time-stamp");
 const vision = require("@google-cloud/vision");
+const client = new vision.ImageAnnotatorClient();
 const { BigQuery } = require("@google-cloud/bigquery");
+const bigQueryClient = new BigQuery();
+const datasetId = "crawler_500px_flickr";
+const tableId = "posts";
 const puppeteer = require("puppeteer");
 
 //---------------------------------------------------------
@@ -31,10 +35,9 @@ function extractItems() {
 //---------------------------------------------------------
 async function runBigQuery(items) {
   // Performs label detection on the gcs file
-  const client = new vision.ImageAnnotatorClient();
   const [result] = await client.labelDetection(`${items.imgSrc}`);
   const labels = result.labelAnnotations;
-  var labelAndScores = [];
+  let labelAndScores = [];
   for (var i = 0; i < labels.length; i++) {
     labelAndScores.push({
       name: labels[i].description,
@@ -42,46 +45,41 @@ async function runBigQuery(items) {
     });
   }
   //adding to big query
-  const bigQueryClient = new BigQuery();
-  const datasetId = "crawler_500px_flickr";
-  const tableId = "posts";
-  const row = [
-    {
-      last_crawl: new Date().getTime() / 1000,
-      title: items.title,
-      img_src: items.imgSrc,
-      desc: items.desc,
-      camera: items.camera,
-      lens: items.lens,
-      location: items.location,
-      date_taken: items.dateTaken,
-      photographer: items.photographer,
-      photographer_link: items.photographerLink,
-      f: items.f,
-      mm: items.mm,
-      iso: items.iso,
-      s: items.s,
-      likes: items.likes,
-      view: items.view,
-      comments: items.comments,
-      tags: items.tags,
-      url: items.url,
-      labels: labelAndScores
-    }
-  ];
   if (items.camera != "") {
     try {
       await bigQueryClient
         .dataset(datasetId)
         .table(tableId)
-        .insert(row);
+        .insert([
+          {
+            last_crawl: new Date().getTime() / 1000,
+            title: items.title,
+            img_src: items.imgSrc,
+            desc: items.desc,
+            camera: items.camera,
+            lens: items.lens,
+            location: items.location,
+            date_taken: items.dateTaken,
+            photographer: items.photographer,
+            photographer_link: items.photographerLink,
+            f: items.f,
+            mm: items.mm,
+            iso: items.iso,
+            s: items.s,
+            likes: items.likes,
+            view: items.view,
+            comments: items.comments,
+            tags: items.tags,
+            url: items.url,
+            labels: labelAndScores
+          }
+        ]);
       console.log("Post Inserted");
-      
+      console.log("/////////////////////////////");
     } catch (e) {
       console.log(JSON.stringify(e));
     }
   }
-  items=null;
 }
 //---------------------------------------------------------
 //             scroll function
@@ -123,7 +121,11 @@ async function scrapeInfiniteScrollItems(
   await page.goto("https://500px.com/popular", { waitUntil: "networkidle2" });
 
   // Scroll and extract items from the page.
-  const items = await scrapeInfiniteScrollItems(page, extractItems, 200000000000);
+  const items = await scrapeInfiniteScrollItems(
+    page,
+    extractItems,
+    20
+  );
 
   const scrape = await scraping(items);
 
@@ -141,7 +143,7 @@ async function scraping(items) {
 
   console.log(items.length);
 
-  for (var k = 0; k < items.length; k++) {
+  for (let k = 0; k < items.length; k++) {
     try {
       console.log("---------------------------------------------");
       console.log("Item number: " + k);
@@ -157,8 +159,9 @@ async function scraping(items) {
       var page500 = await page.evaluate(() => {
         //TITLE
         const title1 = document.querySelector("title");
+        let title;
         if (!title1) {
-          var title = null;
+          title = null;
         } else {
           title = title1.innerText.replace(" / 500px", "");
         }
@@ -167,7 +170,8 @@ async function scraping(items) {
         const dateSearch = document.querySelectorAll(
           '*[class^="Elements__PhotoDateTooltip"] p'
         );
-        var dateArray = [];
+        let dateArray = [];
+        let dateTaken;
         if (!dateSearch) {
           dateTaken = null;
         } else {
@@ -175,7 +179,7 @@ async function scraping(items) {
             dateArray[z] = { name: dateSearch[z].innerText };
           }
           if (!dateArray[2]) {
-            var dateTaken = null;
+            dateTaken = null;
           } else {
             dateTakenFromArray = dateArray[2].name;
             dateTaken = new Date(dateTakenFromArray).getTime() / 1000;
@@ -186,18 +190,22 @@ async function scraping(items) {
         const placeLinkSearch = document.querySelector(
           'a[href^="/discover/place/"]'
         );
+        let location;
+        let locationAll;
+        let locationSplit;
         if (!placeLinkSearch) {
-          var location = null;
+          location = null;
         } else {
           locationAll = placeLinkSearch.getAttribute("href");
-          var locationSplit = locationAll.split("/");
+          locationSplit = locationAll.split("/");
           location = locationSplit.pop().replace(" ", "");
         }
 
         //VIEWS
         const views = document.querySelector('*[data-id="photo-Views"] h3');
+        let view;
         if (!views) {
-          var view = null;
+          view = null;
         } else {
           view = parseInt(views.innerText.replace(/\D/g, ""));
         }
@@ -206,9 +214,9 @@ async function scraping(items) {
         const likesString12 = document.querySelector(
           '*[class^="Elements__PhotoButton"] a'
         );
-
+          let likes;
         if (!likesString12) {
-          var likes = null;
+          likes = null;
         } else {
           likes = parseInt(
             likesString12.innerText.replace(".", "").replace("k", "000")
@@ -219,19 +227,21 @@ async function scraping(items) {
         const commString = document.querySelector(
           'h4[class^="StyledTypography__HeadingSmall"]'
         );
-
+          let comments;
         if (!commString) {
-          var comments = null;
+          comments = null;
         } else {
           comments = parseInt(commString.innerText);
         }
 
         //IMGSRC
         const imgSrcSearch = document.querySelector("img.photo-show__img");
+        let imgSrc
+        let img;
         if (!imgSrcSearch) {
-          var imgSrc = null;
+          imgSrc = null;
         } else {
-          const img = imgSrcSearch.getAttribute("src");
+          img = imgSrcSearch.getAttribute("src");
           imgSrc = img;
         }
 
@@ -243,7 +253,7 @@ async function scraping(items) {
         if (!tagsSearch) {
           tags = null;
         } else {
-          for (var i = 0; i < tagsSearch.length; i++) {
+          for (let i = 0; i < tagsSearch.length; i++) {
             tags[i] = tagsSearch[i].innerText;
           }
         }
@@ -256,7 +266,7 @@ async function scraping(items) {
         if (!trySearch) {
           tryArray[0] = { cam: "" };
         } else {
-          for (var m = 0; m < trySearch.length; m++) {
+          for (let m = 0; m < trySearch.length; m++) {
             tryArray[m] = { name: trySearch[m].innerText };
           }
         }
@@ -265,11 +275,12 @@ async function scraping(items) {
         const cameraSearch = document.querySelectorAll(
           'a[href^="https://500px.com/gear/cameras/"] span'
         );
-        var cameraArray = [];
+        let cameraArray = [];
+        let camera;
         if (!cameraSearch) {
-          var camera = "";
+          camera = "";
         } else {
-          for (var r = 0; r < cameraSearch.length; r++) {
+          for (let r = 0; r < cameraSearch.length; r++) {
             cameraArray[r] = { name: cameraSearch[r].innerText };
           }
           if (!cameraArray[1]) {
@@ -290,9 +301,10 @@ async function scraping(items) {
         const lensesSearch = document.querySelectorAll(
           'a[href^="https://500px.com/gear/lenses/"] span'
         );
-        var lensArray = [];
+        let lensArray = [];
+        let lens;
         if (!lensesSearch) {
-          var lens = null;
+          lens = null;
         } else {
           for (var u = 0; u < lensesSearch.length; u++) {
             lensArray[u] = { name: lensesSearch[u].innerText };
@@ -324,11 +336,11 @@ async function scraping(items) {
         const gearNotHref = document.querySelectorAll(
           '*[data-id^="photo-gear"] p'
         );
-        var gear = [];
+        let gear = [];
         if (!gearNotHref) {
           gear = [];
         } else {
-          for (var q = 0; q < gearNotHref.length; q++) {
+          for (let q = 0; q < gearNotHref.length; q++) {
             gear[q] = { name: gearNotHref[q].innerText };
           }
         }
@@ -337,9 +349,9 @@ async function scraping(items) {
         const categorySearch = document.querySelector(
           'a[href^="https://500px.com/popular/"] span'
         );
-
+          let category;
         if (!categorySearch) {
-          var category = null;
+          category = null;
         } else {
           category = categorySearch.innerText;
         }
@@ -348,8 +360,9 @@ async function scraping(items) {
         const photographerSearch = document.querySelector(
           'p[class^="StyledTypography__Paragraph"] a'
         );
+        let photographer;
         if (!photographerSearch) {
-          var photographer = null;
+          photographer = null;
         } else {
           photographer = photographerSearch.innerText;
         }
@@ -358,17 +371,18 @@ async function scraping(items) {
         const photographerLinkSearch = document.querySelector(
           'p[class^="StyledTypography__Paragraph"] a'
         );
+        let photographerLink
         if (!photographerLinkSearch) {
-          var photographerLink = null;
+          photographerLink = null;
         } else {
           photographerLink = photographerLinkSearch.getAttribute("href");
         }
 
-        var url = window.location.href;
-        var f = null;
-        var mm = null;
-        var iso = null;
-        var s = null;
+        let url = window.location.href;
+        let f = null;
+        let mm = null;
+        let iso = null;
+        let s = null;
 
         return {
           title,
@@ -395,7 +409,7 @@ async function scraping(items) {
       });
 
       if (page500.gear != []) {
-        for (var i = 0; i < page500.gear.length; i++) {
+        for (let i = 0; i < page500.gear.length; i++) {
           if (page500.gear[i].name.startsWith("ƒ/")) {
             page500.f = parseFloat(page500.gear[i].name.replace("ƒ/", ""));
           }
@@ -421,10 +435,9 @@ async function scraping(items) {
 
       delete page500.gear;
 
-      const big_query = await runBigQuery(page500);
-      page500=null;
-
-      console.log("After insert page500: "+page500);
+      if(page500.camera!='')
+      {await runBigQuery(page500);}
+      else{console.log("No Camera - No BigQuery")}
       await wait(1500);
     } catch (e) {
       console.log(e);

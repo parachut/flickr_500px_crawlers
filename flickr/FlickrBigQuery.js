@@ -2,16 +2,15 @@
 require("dotenv").config();
 const timestamp = require("time-stamp");
 const vision = require("@google-cloud/vision");
+const client = new vision.ImageAnnotatorClient();
 const { BigQuery } = require("@google-cloud/bigquery");
-const puppeteer = require("puppeteer");
 const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
-const client = new vision.ImageAnnotatorClient();
-var heapdump = require("heapdump");
+const puppeteer = require("puppeteer");
 let previousHeight;
 let scrollDelay = 1500;
-var StartLink = `https://www.flickr.com/explore/2018/12/16`;
+var StartLink = `https://www.flickr.com/explore/2018/12/15`;
 var EndLink = `https://www.flickr.com/explore/2017/12/30`;
 //---------------------------------------------------------
 //             wait function
