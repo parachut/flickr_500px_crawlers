@@ -402,7 +402,7 @@ async function scrapePages(data) {
   const pageScrape = await browserScrape.newPage();
   pageScrape.setViewport({ width: 1280, height: 1200 });
 
-  for (let i = 0; i < data.length; i++) {
+  for (let i = 275; i < data.length; i++) {
     try {
       console.log("---------------------------------------------");
       console.log("Picture Number: " + i);
