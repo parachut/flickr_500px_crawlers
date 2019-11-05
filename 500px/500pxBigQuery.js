@@ -127,7 +127,7 @@ async function scrapeInfiniteScrollItems(
   await page.close();
   await browser.close();
   //scraping
-  const scrape = await scraping(items);
+  await scraping(items);
 
   await browser.close();
 })();
@@ -155,7 +155,7 @@ async function scraping(items) {
         waitUntil: "networkidle2",
         timeout: 120000
       });
-
+      await wait(1500);
       let page500 = await page.evaluate(() => {
         //TITLE
         const title1 = document.querySelector("title");
@@ -237,11 +237,10 @@ async function scraping(items) {
         //IMGSRC
         const imgSrcSearch = document.querySelector("img.photo-show__img");
         let imgSrc;
-        
+
         if (!imgSrcSearch) {
           imgSrc = null;
         } else {
-          
           imgSrc = imgSrcSearch.getAttribute("src");
         }
 
@@ -429,7 +428,7 @@ async function scraping(items) {
       delete page500.gear;
       console.log("/////////////////////////////");
       console.log(page500.url);
-      let bigQueryRun = await runBigQuery(page500);
+      await runBigQuery(page500);
       await wait(1500);
     } catch (e) {
       console.log(e);

@@ -1,13 +1,13 @@
 {
   "name": "500px",
   "version": "1.0.0",
-  "description": "",
+  "description": "Flickr Crawler",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Bartosz",
   "license": "ISC",
   "dependencies": {
     "@google-cloud/bigquery": "^4.3.0",
