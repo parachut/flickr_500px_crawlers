@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node FlickrBigQueryDaily.js"
+    "start": "node FlickrBigQueryDaily.js",
+    "deploy":"gcloud preview app deploy"
   },
   "keywords": [],
   "author": "Bartosz",

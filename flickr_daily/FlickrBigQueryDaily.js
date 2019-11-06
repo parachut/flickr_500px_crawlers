@@ -360,11 +360,9 @@ function extractItems() {
 async function scrapePages(data) {
   //opening browser and page
   const browserScrape = await puppeteer.launch({
-    headless: false,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    args: ["--no-sandbox"]
   });
   const pageScrape = await browserScrape.newPage();
-  pageScrape.setViewport({ width: 1280, height: 1200 });
 
   for (let i = 0; i < data.length; i++) {
     try {
@@ -401,12 +399,10 @@ async function scrapePages(data) {
 
 async function main() {
   const browser = await puppeteer.launch({
-    headless: false,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    args: ["--no-sandbox"]
   });
   const page = await browser.newPage();
   await page.setDefaultNavigationTimeout(0);
-  page.setViewport({ width: 1280, height: 926 });
 
   await page.goto(Link, {
     waitUntil: "networkidle2"

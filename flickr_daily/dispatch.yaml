@@ -1,4 +1,4 @@
 dispatch:
   # Default service serves the typical web resources and all static resources.
-  - url: "*/tasks/flickr_daily"
-    service: flickr_daily
+  - url: "*/tasks/flickr-daily"
+    service: flickr-daily
