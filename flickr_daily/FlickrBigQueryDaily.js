@@ -402,10 +402,11 @@ async function main() {
     args: ["--no-sandbox"]
   });
   const page = await browser.newPage();
-  await page.setDefaultNavigationTimeout(0);
+  //await page.setDefaultNavigationTimeout(0);
 
   await page.goto(Link, {
-    waitUntil: "networkidle2"
+    waitUntil: "networkidle2",
+    timeout: 120000
   });
   console.log("---------------------------------------------");
   console.log(Link);
