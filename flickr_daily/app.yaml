@@ -1,0 +1,7 @@
+runtime: nodejs
+env: standard
+service: flick_daily
+skip_files:
+  - ^node_modules/.*
+  .env
+  google.json

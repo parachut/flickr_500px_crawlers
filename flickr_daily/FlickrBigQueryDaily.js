@@ -10,8 +10,8 @@ const tableId = "posts";
 const puppeteer = require("puppeteer");
 let previousHeight;
 let scrollDelay = 1500;
-var StartLink = `https://www.flickr.com/explore/2018/11/04`;
-var EndLink = `https://www.flickr.com/explore/2017/12/30`;
+var Link = `https://www.flickr.com/explore`;
+
 //---------------------------------------------------------
 //             wait function
 //---------------------------------------------------------
@@ -36,59 +36,39 @@ async function runBigQuery(items) {
     });
   }
   //adding to big query
-    try {
-      await bigQueryClient
-        .dataset(datasetId)
-        .table(tableId)
-        .insert([
-          {
-            last_crawl: new Date().getTime() / 1000,
-            title: items.title,
-            img_src: items.imgSrc,
-            desc: items.desc,
-            camera: items.camera,
-            lens: items.lens,
-            location: items.location,
-            date_taken: items.dateTaken,
-            photographer: items.photographer,
-            photographer_link: items.photographerLink,
-            f: items.f,
-            mm: items.mm,
-            iso: items.iso,
-            s: items.s,
-            likes: items.likes,
-            view: items.view,
-            comments: items.comments,
-            tags: items.tags,
-            url: items.url,
-            labels: labelAndScores,
-            exif: items.exifSpecs
-          }
-        ]);
-      console.log("Post Inserted");
-    } catch (e) {
-      console.log(JSON.stringify(e));
-    }
-
-}
-//---------------------------------------------------------
-//             getting link from the button
-//---------------------------------------------------------
-function getNextLink() {
-  const getNexPage = document.querySelector(
-    'a[data-track^="explore-page-back"]'
-  );
-
-  let getNexPageLink;
-  if (!getNexPage) {
-    console.log("No More");
-  } else {
-    getNexPageLink = getNexPage.getAttribute("href");
+  try {
+    await bigQueryClient
+      .dataset(datasetId)
+      .table(tableId)
+      .insert([
+        {
+          last_crawl: new Date().getTime() / 1000,
+          title: items.title,
+          img_src: items.imgSrc,
+          desc: items.desc,
+          camera: items.camera,
+          lens: items.lens,
+          location: items.location,
+          date_taken: items.dateTaken,
+          photographer: items.photographer,
+          photographer_link: items.photographerLink,
+          f: items.f,
+          mm: items.mm,
+          iso: items.iso,
+          s: items.s,
+          likes: items.likes,
+          view: items.view,
+          comments: items.comments,
+          tags: items.tags,
+          url: items.url,
+          labels: labelAndScores,
+          exif: items.exifSpecs
+        }
+      ]);
+    console.log("Post Inserted");
+  } catch (e) {
+    console.log(JSON.stringify(e));
   }
-
-  return {
-    getNexPageLink
-  };
 }
 //---------------------------------------------------------
 //             function for scraping pages
@@ -400,11 +380,11 @@ async function scrapePages(data) {
       });
 
       let scraping = await pageScrape.evaluate(scrape);
-      if(scraping.camera!=''){
-      await runBigQuery(scraping);}
-      else{
-        scraping=null;
-        console.log("No Camera - No Big Query")
+      if (scraping.camera != "") {
+        await runBigQuery(scraping);
+      } else {
+        scraping = null;
+        console.log("No Camera - No Big Query");
       }
     } catch (e) {
       console.log(e);
@@ -419,61 +399,47 @@ async function scrapePages(data) {
 //             main function
 //---------------------------------------------------------
 
-async function main(Link) {
-  Link = StartLink;
-  if (Link != EndLink) {
-    //opening browser and page
-    const browser = await puppeteer.launch({
-      headless: false,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
-    });
-    const page = await browser.newPage();
-    await page.setDefaultNavigationTimeout(0);
-    page.setViewport({ width: 1280, height: 926 });
+async function main() {
+  const browser = await puppeteer.launch({
+    headless: false,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  });
+  const page = await browser.newPage();
+  await page.setDefaultNavigationTimeout(0);
+  page.setViewport({ width: 1280, height: 926 });
 
-    await page.goto(Link, {
-      waitUntil: "networkidle2"
-    });
-    console.log("---------------------------------------------");
-    console.log(Link);
-    console.log("---------------------------------------------");
+  await page.goto(Link, {
+    waitUntil: "networkidle2"
+  });
+  console.log("---------------------------------------------");
+  console.log(Link);
+  console.log("---------------------------------------------");
 
-    //---------------------------------------------------------
-    //                get and scroll
-    //---------------------------------------------------------
+  //---------------------------------------------------------
+  //                get and scroll
+  //---------------------------------------------------------
 
-    let data;
-    try {
-      for (let i = 0; i < 10; i++) {
-        data = await page.evaluate(extractItems);
-        previousHeight = await page.evaluate("document.body.scrollHeight");
-        await page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
-        await page.waitForFunction(
-          `document.body.scrollHeight > ${previousHeight}`
-        );
-        await page.waitFor(scrollDelay);
-      }
-    } catch (e) {
-      console.log(e);
+  let data;
+  try {
+    for (let i = 0; i < 10; i++) {
+      data = await page.evaluate(extractItems);
+      previousHeight = await page.evaluate("document.body.scrollHeight");
+      await page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
+      await page.waitForFunction(
+        `document.body.scrollHeight > ${previousHeight}`
+      );
+      await page.waitFor(scrollDelay);
     }
-    let previousPage = await page.evaluate(getNextLink);
-    let newLinkToGo = `https://www.flickr.com${previousPage.getNexPageLink}`;
-
-    console.log("---------------------------------------------");
-    console.log(data.length);
-    console.log("---------------------------------------------");
-    await page.close();
-    await browser.close();
-    await scrapePages(data);
-    await wait(1000);
-
-    //going to the next page
-    StartLink = newLinkToGo;
-
-    main(newLinkToGo);
-  } else {
-    console.log("DONE");
+  } catch (e) {
+    console.log(e);
   }
+  console.log("---------------------------------------------");
+  console.log(data.length);
+  console.log("---------------------------------------------");
+  await page.close();
+  await browser.close();
+  await scrapePages(data);
+  await wait(1000);
 }
 
 main();

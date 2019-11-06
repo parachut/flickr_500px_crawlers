@@ -1,0 +1,5 @@
+cron:
+- description: "Daily Crawl Flickr"
+  url: /tasks/flickr_daily
+  schedule: every 24 hours
+  target: flickr_daily
