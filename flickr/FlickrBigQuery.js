@@ -36,40 +36,39 @@ async function runBigQuery(items) {
     });
   }
   //adding to big query
-    try {
-      await bigQueryClient
-        .dataset(datasetId)
-        .table(tableId)
-        .insert([
-          {
-            last_crawl: new Date().getTime() / 1000,
-            title: items.title,
-            img_src: items.imgSrc,
-            desc: items.desc,
-            camera: items.camera,
-            lens: items.lens,
-            location: items.location,
-            date_taken: items.dateTaken,
-            photographer: items.photographer,
-            photographer_link: items.photographerLink,
-            f: items.f,
-            mm: items.mm,
-            iso: items.iso,
-            s: items.s,
-            likes: items.likes,
-            view: items.view,
-            comments: items.comments,
-            tags: items.tags,
-            url: items.url,
-            labels: labelAndScores,
-            exif: items.exifSpecs
-          }
-        ]);
-      console.log("Post Inserted");
-    } catch (e) {
-      console.log(JSON.stringify(e));
-    }
-
+  try {
+    await bigQueryClient
+      .dataset(datasetId)
+      .table(tableId)
+      .insert([
+        {
+          last_crawl: new Date().getTime() / 1000,
+          title: items.title,
+          img_src: items.imgSrc,
+          desc: items.desc,
+          camera: items.camera,
+          lens: items.lens,
+          location: items.location,
+          date_taken: items.dateTaken,
+          photographer: items.photographer,
+          photographer_link: items.photographerLink,
+          f: items.f,
+          mm: items.mm,
+          iso: items.iso,
+          s: items.s,
+          likes: items.likes,
+          view: items.view,
+          comments: items.comments,
+          tags: items.tags,
+          url: items.url,
+          labels: labelAndScores,
+          exif: items.exifSpecs
+        }
+      ]);
+    console.log("Post Inserted");
+  } catch (e) {
+    console.log(JSON.stringify(e));
+  }
 }
 //---------------------------------------------------------
 //             getting link from the button
@@ -380,11 +379,19 @@ function extractItems() {
 async function scrapePages(data) {
   //opening browser and page
   const browserScrape = await puppeteer.launch({
-    headless: false,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    headless: true,
+    args: ["--no-sandbox"]
   });
   const pageScrape = await browserScrape.newPage();
-  pageScrape.setViewport({ width: 1280, height: 1200 });
+  
+  await pageScrape.setRequestInterception(true);
+  pageScrape.on("request", req => {
+    const whitelist = ["document", "script", "xhr", "fetch"];
+    if (!whitelist.includes(req.resourceType())) {
+      return req.abort();
+    }
+    req.continue();
+  });
 
   for (let i = 0; i < data.length; i++) {
     try {
@@ -400,16 +407,15 @@ async function scrapePages(data) {
       });
 
       let scraping = await pageScrape.evaluate(scrape);
-      if(scraping.camera!=''){
-      await runBigQuery(scraping);}
-      else{
-        scraping=null;
-        console.log("No Camera - No Big Query")
+      if (scraping.camera != "") {
+        await runBigQuery(scraping);
+      } else {
+        scraping = null;
+        console.log("No Camera - No Big Query");
       }
     } catch (e) {
       console.log(e);
     }
-    await wait(2000);
   }
 
   await pageScrape.close();
@@ -424,15 +430,22 @@ async function main(Link) {
   if (Link != EndLink) {
     //opening browser and page
     const browser = await puppeteer.launch({
-      headless: false,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+      headless: true,
+      args: ["--no-sandbox"]
     });
     const page = await browser.newPage();
-    await page.setDefaultNavigationTimeout(0);
-    page.setViewport({ width: 1280, height: 926 });
+    await page.setRequestInterception(true);
 
+    page.on("request", req => {
+      const whitelist = ["document", "script", "xhr", "fetch"];
+      if (!whitelist.includes(req.resourceType())) {
+        return req.abort();
+      }
+      req.continue();
+    });
     await page.goto(Link, {
-      waitUntil: "networkidle2"
+      waitUntil: "networkidle2",
+      timeout: 120000
     });
     console.log("---------------------------------------------");
     console.log(Link);
@@ -442,9 +455,10 @@ async function main(Link) {
     //                get and scroll
     //---------------------------------------------------------
 
-    let data;
+    let data=[];
+    let itemTargetCount = 1000
     try {
-      for (let i = 0; i < 10; i++) {
+      while (data.length<itemTargetCount) {
         data = await page.evaluate(extractItems);
         previousHeight = await page.evaluate("document.body.scrollHeight");
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)");

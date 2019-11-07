@@ -1,5 +1,5 @@
 {
-  "name": "FlickrDaily",
+  "name": "flickr_daily",
   "version": "1.0.0",
   "description": "Flickr Crawler",
   "main": "index.js",

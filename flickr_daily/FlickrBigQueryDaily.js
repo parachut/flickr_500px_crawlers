@@ -397,7 +397,6 @@ async function scrapePages(data) {
     } catch (e) {
       console.log(e);
     }
-    //await wait(2000);
   }
 
   await pageScrape.close();

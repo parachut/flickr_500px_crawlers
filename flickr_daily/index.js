@@ -7,7 +7,5 @@ const app = express();
 app.get('/', (req, res)=>{
     res.send('<h1>Flickr Crawler</h1>')
 } )
-//app.use(express.static(__dirname + '/flickr_daily'));
-
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, ()=> console.log(`Server Started on port ${PORT}`));
