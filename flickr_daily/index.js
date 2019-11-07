@@ -9,5 +9,5 @@ app.get('/', (req, res)=>{
 } )
 //app.use(express.static(__dirname + '/flickr_daily'));
 
-const PORT = process.env.PORT || 7000;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, ()=> console.log(`Server Started on port ${PORT}`));

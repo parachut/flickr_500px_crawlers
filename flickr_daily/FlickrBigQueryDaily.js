@@ -360,9 +360,19 @@ function extractItems() {
 async function scrapePages(data) {
   //opening browser and page
   const browserScrape = await puppeteer.launch({
-    args: ["--no-sandbox"]
+    args: ["--no-sandbox"],
+    headless: true
   });
   const pageScrape = await browserScrape.newPage();
+
+  await pageScrape.setRequestInterception(true);
+  pageScrape.on("request", req => {
+    const whitelist = ["document", "script", "xhr", "fetch"];
+    if (!whitelist.includes(req.resourceType())) {
+      return req.abort();
+    }
+    req.continue();
+  });
 
   for (let i = 0; i < data.length; i++) {
     try {
@@ -387,7 +397,7 @@ async function scrapePages(data) {
     } catch (e) {
       console.log(e);
     }
-    await wait(2000);
+    //await wait(2000);
   }
 
   await pageScrape.close();
@@ -399,14 +409,22 @@ async function scrapePages(data) {
 
 async function main() {
   const browser = await puppeteer.launch({
-    args: ["--no-sandbox"]
+    args: ["--no-sandbox"],
+    headless: true
   });
   const page = await browser.newPage();
-  //await page.setDefaultNavigationTimeout(0);
 
   await page.goto(Link, {
     waitUntil: "networkidle2",
     timeout: 120000
+  });
+  await page.setRequestInterception(true);
+  page.on("request", req => {
+    const whitelist = ["document", "script", "xhr", "fetch"];
+    if (!whitelist.includes(req.resourceType())) {
+      return req.abort();
+    }
+    req.continue();
   });
   console.log("---------------------------------------------");
   console.log(Link);

@@ -10,7 +10,7 @@ const tableId = "posts";
 const puppeteer = require("puppeteer");
 let previousHeight;
 let scrollDelay = 1500;
-var StartLink = `https://www.flickr.com/explore/2018/11/04`;
+var StartLink = `https://www.flickr.com/explore/2018/10/04`;
 var EndLink = `https://www.flickr.com/explore/2017/12/30`;
 //---------------------------------------------------------
 //             wait function

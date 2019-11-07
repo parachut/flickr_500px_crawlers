@@ -1,12 +1,16 @@
-runtime: nodejs12
+runtime: nodejs10
 env: standard
 service: flickr-daily
 handlers:
 - url: /favicon\.ico
   static_files: favicon.ico
   upload: favicon.ico
-resources:
-  memory_gb: 0.5
-basic_scaling:
-  max_instances: 1
-  idle_timeout: 10m
+- url: /
+  script: auto
+instance_class: F4
+automatic_scaling:
+  min_instances: 1
+  min_idle_instances: automatic
+  max_idle_instances: automatic
+  min_pending_latency: automatic
+  max_pending_latency: automatic
