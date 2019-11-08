@@ -433,7 +433,7 @@ async function main() {
   //                get and scroll
   //---------------------------------------------------------
 
-  let data=[];
+  let data = [];
   const distance = 300;
   const delay = 100;
   while (
@@ -459,4 +459,4 @@ async function main() {
   await wait(1000);
 }
 
-main();
+export default main;
