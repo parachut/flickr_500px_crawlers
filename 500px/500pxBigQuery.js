@@ -6,7 +6,7 @@ const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
-
+const links =["https://500px.com/popular","https://500px.com/upcoming","https://500px.com/fresh"]
 //---------------------------------------------------------
 //             getting images links
 //---------------------------------------------------------
@@ -89,8 +89,9 @@ async function scrapeInfiniteScrollItems(
   return items;
 }
 
-(async () => {
+async function main() {
   // Set up browser and page.
+  for (let i = 0; i<links.length; i++){
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox"]
@@ -106,20 +107,21 @@ async function scrapeInfiniteScrollItems(
       req.continue();
     });
   // Navigate to the page.
+  
   console.log("---------------------------------------------");
-  console.log("https://500px.com/popular");
+  console.log(links[i]);
   console.log("---------------------------------------------");
-  await page.goto("https://500px.com/popular", { waitUntil: "networkidle2" });
+  await page.goto(links[i], { waitUntil: "networkidle2" });
 
   // Scroll and extract items from the page.
-  const items = await scrapeInfiniteScrollItems(page, extractItems, 200000000);
+  const items = await scrapeInfiniteScrollItems(page, extractItems, 5);
   await page.close();
   await browser.close();
   //scraping
   await scraping(items);
 
-  await browser.close();
-})();
+  await browser.close();}
+}
 
 async function scraping(items) {
   const browserScrape = await puppeteer.launch({
@@ -435,3 +437,5 @@ async function scraping(items) {
   await page.close();
   await browserScrape.close();
 }
+ 
+main()
