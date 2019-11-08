@@ -1,8 +1,8 @@
 "use strict";
 require("dotenv").config();
 const timestamp = require("time-stamp");
-const vision = require("@google-cloud/vision");
-const client = new vision.ImageAnnotatorClient();
+//const vision = require("@google-cloud/vision");
+//const client = new vision.ImageAnnotatorClient();
 const { BigQuery } = require("@google-cloud/bigquery");
 const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
@@ -25,16 +25,16 @@ async function wait(ms) {
 //---------------------------------------------------------
 async function runBigQuery(items) {
   // Performs label detection on the gcs file
-  const [result] = await client.labelDetection(`${items.imgSrc}`);
-  let labels = result.labelAnnotations;
-  //create object with all names and scores for labels
-  let labelAndScores = [];
-  for (let i = 0; i < labels.length; i++) {
-    labelAndScores.push({
-      name: labels[i].description,
-      score: Math.round(labels[i].score * 100)
-    });
-  }
+  // const [result] = await client.labelDetection(`${items.imgSrc}`);
+  // let labels = result.labelAnnotations;
+  // //create object with all names and scores for labels
+  // let labelAndScores = [];
+  // for (let i = 0; i < labels.length; i++) {
+  //   labelAndScores.push({
+  //     name: labels[i].description,
+  //     score: Math.round(labels[i].score * 100)
+  //   });
+  // }
   //adding to big query
   try {
     await bigQueryClient
@@ -61,7 +61,7 @@ async function runBigQuery(items) {
           comments: items.comments,
           tags: items.tags,
           url: items.url,
-          labels: labelAndScores,
+          //labels: labelAndScores,
           exif: items.exifSpecs
         }
       ]);
@@ -433,20 +433,23 @@ async function main() {
   //                get and scroll
   //---------------------------------------------------------
 
-  let data;
-  try {
-    for (let i = 0; i < 10; i++) {
-      data = await page.evaluate(extractItems);
-      previousHeight = await page.evaluate("document.body.scrollHeight");
-      await page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
-      await page.waitForFunction(
-        `document.body.scrollHeight > ${previousHeight}`
-      );
-      await page.waitFor(scrollDelay);
-    }
-  } catch (e) {
-    console.log(e);
+  let data=[];
+  const distance = 300;
+  const delay = 100;
+  while (
+    await page.evaluate(
+      () =>
+        document.scrollingElement.scrollTop + window.innerHeight <
+        document.scrollingElement.scrollHeight
+    )
+  ) {
+    data = await page.evaluate(extractItems);
+    await page.evaluate(y => {
+      document.scrollingElement.scrollBy(0, y);
+    }, distance);
+    await page.waitFor(delay);
   }
+
   console.log("---------------------------------------------");
   console.log(data.length);
   console.log("---------------------------------------------");

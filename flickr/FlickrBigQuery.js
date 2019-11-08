@@ -1,8 +1,8 @@
 "use strict";
 require("dotenv").config();
 const timestamp = require("time-stamp");
-const vision = require("@google-cloud/vision");
-const client = new vision.ImageAnnotatorClient();
+// const vision = require("@google-cloud/vision");
+// const client = new vision.ImageAnnotatorClient();
 const { BigQuery } = require("@google-cloud/bigquery");
 const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
@@ -11,7 +11,7 @@ const puppeteer = require("puppeteer");
 let previousHeight;
 let scrollDelay = 1500;
 var StartLink = `https://www.flickr.com/explore/2018/10/04`;
-var EndLink = `https://www.flickr.com/explore/2017/12/30`;
+
 //---------------------------------------------------------
 //             wait function
 //---------------------------------------------------------
@@ -24,17 +24,17 @@ async function wait(ms) {
 //       reading labels and adding element to big query
 //---------------------------------------------------------
 async function runBigQuery(items) {
-  // Performs label detection on the gcs file
-  const [result] = await client.labelDetection(`${items.imgSrc}`);
-  let labels = result.labelAnnotations;
-  //create object with all names and scores for labels
-  let labelAndScores = [];
-  for (let i = 0; i < labels.length; i++) {
-    labelAndScores.push({
-      name: labels[i].description,
-      score: Math.round(labels[i].score * 100)
-    });
-  }
+  // // Performs label detection on the gcs file
+  // const [result] = await client.labelDetection(`${items.imgSrc}`);
+  // let labels = result.labelAnnotations;
+  // //create object with all names and scores for labels
+  // let labelAndScores = [];
+  // for (let i = 0; i < labels.length; i++) {
+  //   labelAndScores.push({
+  //     name: labels[i].description,
+  //     score: Math.round(labels[i].score * 100)
+  //   });
+  // }
   //adding to big query
   try {
     await bigQueryClient
@@ -61,7 +61,7 @@ async function runBigQuery(items) {
           comments: items.comments,
           tags: items.tags,
           url: items.url,
-          labels: labelAndScores,
+          //  labels: labelAndScores,
           exif: items.exifSpecs
         }
       ]);
@@ -383,7 +383,7 @@ async function scrapePages(data) {
     args: ["--no-sandbox"]
   });
   const pageScrape = await browserScrape.newPage();
-  
+
   await pageScrape.setRequestInterception(true);
   pageScrape.on("request", req => {
     const whitelist = ["document", "script", "xhr", "fetch"];
@@ -427,67 +427,63 @@ async function scrapePages(data) {
 
 async function main(Link) {
   Link = StartLink;
-  if (Link != EndLink) {
-    //opening browser and page
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox"]
-    });
-    const page = await browser.newPage();
-    await page.setRequestInterception(true);
+  //opening browser and page
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox"]
+  });
+  const page = await browser.newPage();
+  await page.setRequestInterception(true);
 
-    page.on("request", req => {
-      const whitelist = ["document", "script", "xhr", "fetch"];
-      if (!whitelist.includes(req.resourceType())) {
-        return req.abort();
-      }
-      req.continue();
-    });
-    await page.goto(Link, {
-      waitUntil: "networkidle2",
-      timeout: 120000
-    });
-    console.log("---------------------------------------------");
-    console.log(Link);
-    console.log("---------------------------------------------");
-
-    //---------------------------------------------------------
-    //                get and scroll
-    //---------------------------------------------------------
-
-    let data=[];
-    let itemTargetCount = 1000
-    try {
-      while (data.length<itemTargetCount) {
-        data = await page.evaluate(extractItems);
-        previousHeight = await page.evaluate("document.body.scrollHeight");
-        await page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
-        await page.waitForFunction(
-          `document.body.scrollHeight > ${previousHeight}`
-        );
-        await page.waitFor(scrollDelay);
-      }
-    } catch (e) {
-      console.log(e);
+  page.on("request", req => {
+    const whitelist = ["document", "script", "xhr", "fetch"];
+    if (!whitelist.includes(req.resourceType())) {
+      return req.abort();
     }
-    let previousPage = await page.evaluate(getNextLink);
-    let newLinkToGo = `https://www.flickr.com${previousPage.getNexPageLink}`;
+    req.continue();
+  });
+  await page.goto(Link, {
+    waitUntil: "networkidle2",
+    timeout: 120000
+  });
+  console.log("---------------------------------------------");
+  console.log(Link);
+  console.log("---------------------------------------------");
 
-    console.log("---------------------------------------------");
-    console.log(data.length);
-    console.log("---------------------------------------------");
-    await page.close();
-    await browser.close();
-    await scrapePages(data);
-    await wait(1000);
+  //---------------------------------------------------------
+  //                get and scroll
+  //---------------------------------------------------------
 
-    //going to the next page
-    StartLink = newLinkToGo;
-
-    main(newLinkToGo);
-  } else {
-    console.log("DONE");
+  let data = [];
+  const distance = 500;
+  const delay = 100;
+  while (
+    await page.evaluate(
+      () =>
+        document.scrollingElement.scrollTop + window.innerHeight <
+        document.scrollingElement.scrollHeight
+    )
+  ) {
+    data = await page.evaluate(extractItems);
+    await page.evaluate(y => {
+      document.scrollingElement.scrollBy(0, y);
+    }, distance);
+    await page.waitFor(delay);
   }
+
+  let previousPage = await page.evaluate(getNextLink);
+  let newLinkToGo = `https://www.flickr.com${previousPage.getNexPageLink}`;
+
+  console.log(data.length);
+  await page.close();
+  await browser.close();
+  await scrapePages(data);
+  await wait(1000);
+
+  //going to the next page
+  StartLink = newLinkToGo;
+
+  main(newLinkToGo);
 }
 
 main();

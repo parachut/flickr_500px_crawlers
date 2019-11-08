@@ -1,0 +1,5 @@
+cron:
+- description: "Daily Crawl 500px"
+  url: /
+  schedule: every 24 hours
+  target: 500px-daily

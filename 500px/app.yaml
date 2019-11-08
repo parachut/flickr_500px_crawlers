@@ -1,0 +1,16 @@
+runtime: nodejs10
+env: standard
+service: 500px-daily
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon.ico
+- url: /500px-daily
+  script: auto
+instance_class: F4
+automatic_scaling:
+  min_instances: 1
+  min_idle_instances: automatic
+  max_idle_instances: automatic
+  min_pending_latency: automatic
+  max_pending_latency: automatic
