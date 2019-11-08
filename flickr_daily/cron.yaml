@@ -1,5 +1,5 @@
 cron:
 - description: "Daily Crawl Flickr"
-  url: /flickr-daily
+  url: /crawlers/flickr-daily
   schedule: every 24 hours
   target: flickr-daily
