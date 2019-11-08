@@ -1,4 +1,4 @@
 dispatch:
   # Default service serves the typical web resources and all static resources.
-  - url: "*/tasks/500px-daily"
-    service: 500px-daily
+  - url: "*/crawlers/*"
+    service: crawlers

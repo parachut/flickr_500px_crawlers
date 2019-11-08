@@ -1,4 +1,4 @@
 runtime: nodejs10
 env: standard
-service: crawlers-flickr-infin
+service: crawlers-flickr-infinity
 instance_class: F4

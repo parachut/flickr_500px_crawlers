@@ -1,5 +1,5 @@
 cron:
 - description: "Daily Crawl 500px"
-  url: /
+  url: /crawlers/500px-daily
   schedule: every 24 hours
-  target: 500px-daily
+  target: crawlers

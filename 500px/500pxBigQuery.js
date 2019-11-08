@@ -112,7 +112,7 @@ async function scrapeInfiniteScrollItems(
   await page.goto("https://500px.com/popular", { waitUntil: "networkidle2" });
 
   // Scroll and extract items from the page.
-  const items = await scrapeInfiniteScrollItems(page, extractItems, 200);
+  const items = await scrapeInfiniteScrollItems(page, extractItems, 200000000);
   await page.close();
   await browser.close();
   //scraping
