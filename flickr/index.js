@@ -17,5 +17,5 @@ app.get("/flickr-infinity", (req, res) => {
     res.send("ok!");
   });
 
-const PORT = process.env.PORT || 7000;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, ()=> console.log(`Server Started on port ${PORT}`));
