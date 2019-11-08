@@ -49,7 +49,6 @@ async function runBigQuery(items) {
           comments: items.comments,
           tags: items.tags,
           url: items.url,
-          //  labels: labelAndScores,
           exif: items.exifSpecs
         }
       ]);

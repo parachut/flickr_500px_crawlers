@@ -1,16 +1,4 @@
 runtime: nodejs10
 env: standard
-service: flickr-yearly
-handlers:
-- url: /favicon\.ico
-  static_files: favicon.ico
-  upload: favicon.ico
-- url: /flickr-yearly
-  script: auto
+service: crawlers-flickr-infin
 instance_class: F4
-automatic_scaling:
-  min_instances: 1
-  min_idle_instances: automatic
-  max_idle_instances: automatic
-  min_pending_latency: automatic
-  max_pending_latency: automatic

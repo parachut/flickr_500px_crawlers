@@ -1,22 +1,12 @@
 "use strict";
 require("dotenv").config();
 const timestamp = require("time-stamp");
-// const vision = require("@google-cloud/vision");
-// const client = new vision.ImageAnnotatorClient();
 const { BigQuery } = require("@google-cloud/bigquery");
 const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
 
-//---------------------------------------------------------
-//             wait function
-//---------------------------------------------------------
-// async function wait(ms) {
-//   return new Promise(resolve => {
-//     setTimeout(resolve, ms);
-//   });
-// }
 //---------------------------------------------------------
 //             getting images links
 //---------------------------------------------------------
@@ -36,16 +26,6 @@ function extractItems() {
 //---------------------------------------------------------
 async function runBigQuery(items) {
   if (items.camera != "") {
-    // // Performs label detection on the gcs file
-    // const [result] = await client.labelDetection(`${items.imgSrc}`);
-    // const labels = result.labelAnnotations;
-    // let labelAndScores = [];
-    // for (let i = 0; i < labels.length; i++) {
-    //   labelAndScores.push({
-    //     name: labels[i].description,
-    //     score: Math.round(labels[i].score * 100)
-    //   });
-    // }
     //adding to big query
     try {
       await bigQueryClient
@@ -72,7 +52,6 @@ async function runBigQuery(items) {
             comments: items.comments,
             tags: items.tags,
             url: items.url,
-            labels: labelAndScores
           }
         ]);
       console.log("Post Inserted");
@@ -133,7 +112,7 @@ async function scrapeInfiniteScrollItems(
   await page.goto("https://500px.com/popular", { waitUntil: "networkidle2" });
 
   // Scroll and extract items from the page.
-  const items = await scrapeInfiniteScrollItems(page, extractItems, 200000000);
+  const items = await scrapeInfiniteScrollItems(page, extractItems, 200);
   await page.close();
   await browser.close();
   //scraping
@@ -174,7 +153,6 @@ async function scraping(items) {
         waitUntil: "networkidle2",
         timeout: 120000
       });
-     //await wait(1500);
       let page500 = await page.evaluate(() => {
         //TITLE
         const title1 = document.querySelector("title");
@@ -448,7 +426,6 @@ async function scraping(items) {
       console.log("/////////////////////////////");
       console.log(page500.url);
       await runBigQuery(page500);
-      //await wait(1500);
     } catch (e) {
       console.log(e);
     }
