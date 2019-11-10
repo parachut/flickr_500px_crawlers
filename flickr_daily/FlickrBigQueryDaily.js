@@ -435,7 +435,7 @@ async function main() {
 
   let data = [];
   const distance = 300;
-  const delay = 100;
+  const delay = 500;
   while (
     await page.evaluate(
       () =>
@@ -458,5 +458,5 @@ async function main() {
   await scrapePages(data);
   await wait(1000);
 }
-
-export default main;
+//main()
+module.exports = main;

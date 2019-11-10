@@ -114,7 +114,7 @@ async function main() {
   await page.goto(links[i], { waitUntil: "networkidle2" });
 
   // Scroll and extract items from the page.
-  const items = await scrapeInfiniteScrollItems(page, extractItems, 5);
+  const items = await scrapeInfiniteScrollItems(page, extractItems, 50000);
   await page.close();
   await browser.close();
   //scraping
@@ -441,4 +441,4 @@ async function scraping(items) {
   await browserScrape.close();
 }
  
-main()
+module.exports = main;

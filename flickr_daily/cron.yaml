@@ -1,9 +1,9 @@
 cron:
 - description: "Daily Crawl Flickr"
-  url: /crawlers/flickr-daily
+  url: /flickr-daily
   schedule: every 24 hours
   target: crawlers
 - description: "Daily Crawl 500px"
-  url: /crawlers/500px-daily
+  url: /500px-daily
   schedule: every 24 hours
   target: crawlers
