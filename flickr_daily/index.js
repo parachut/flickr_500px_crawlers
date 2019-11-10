@@ -1,11 +1,11 @@
 const express = require("express");
 const path = require("path");
 const FlickrBiqQueryDailyJS = require("./FlickrBigQueryDaily.js");
-const Crawler500pxBigQuery = require("../500px/500pxBigQuery.js")
+const Crawler500pxBigQuery = require("./500pxBigQuery.js")
 
 const app = express();
 
-app.get("/flickr-daily", (req, res) => {
+app.get("/crawlers/flickr-daily", (req, res) => {
   if (
     process.env.STAGE === "production" &&
     req.get("X-Appengine-Cron") !== "true"
@@ -19,7 +19,7 @@ app.get("/flickr-daily", (req, res) => {
 });
 
 
-app.get("/500px-daily", (req, res) => {
+app.get("/crawlers/500px-daily", (req, res) => {
     if (
       process.env.STAGE === "production" &&
       req.get("X-Appengine-Cron") !== "true"
