@@ -107,20 +107,24 @@ async function main() {
       req.continue();
     });
   // Navigate to the page.
-  
+  try {
   console.log("---------------------------------------------");
   console.log(links[i]);
   console.log("---------------------------------------------");
-  await page.goto(links[i], { waitUntil: "networkidle2" });
+  await page.goto(links[i], { waitUntil: "networkidle2" , timeout: 1200000});
 
   // Scroll and extract items from the page.
   const items = await scrapeInfiniteScrollItems(page, extractItems, 50000);
   await page.close();
-  await browser.close();
+  await browser.close();}
+  catch(e){
+    console.log(e)
+  }
+  
   //scraping
   await scraping(items);
 
-  await browser.close();}
+  }
 }
 
 async function scraping(items) {

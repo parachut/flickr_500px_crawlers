@@ -15,7 +15,7 @@ app.get("/flickr-daily", async function(req, res) {
 
   await FlickrBiqQueryDailyJS();
 
-  res.send("ok!");
+  //res.send("ok!");
 });
 
 app.get("/500px-daily", async function(req, res) {
@@ -28,7 +28,7 @@ app.get("/500px-daily", async function(req, res) {
 
   await Crawler500pxBigQuery();
 
-  res.send("ok!");
+  //res.send("ok!");
 });
 
 const PORT = process.env.PORT || 7000;
