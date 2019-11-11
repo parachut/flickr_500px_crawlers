@@ -114,7 +114,7 @@ async function main() {
   await page.goto(links[i], { waitUntil: "networkidle2" , timeout: 120000});
 
   // Scroll and extract items from the page.
-  let items = await scrapeInfiniteScrollItems(page, extractItems, 50000);
+  let items = await scrapeInfiniteScrollItems(page, extractItems, 4000);
   await page.close();
   await browser.close();
   await scraping(items);}
