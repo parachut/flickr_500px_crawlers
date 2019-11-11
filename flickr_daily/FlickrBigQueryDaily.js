@@ -1,15 +1,11 @@
 "use strict";
 require("dotenv").config();
 const timestamp = require("time-stamp");
-//const vision = require("@google-cloud/vision");
-//const client = new vision.ImageAnnotatorClient();
 const { BigQuery } = require("@google-cloud/bigquery");
 const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
-let previousHeight;
-let scrollDelay = 1500;
 var Link = `https://www.flickr.com/explore`;
 
 //---------------------------------------------------------
@@ -24,17 +20,6 @@ async function wait(ms) {
 //       reading labels and adding element to big query
 //---------------------------------------------------------
 async function runBigQuery(items) {
-  // Performs label detection on the gcs file
-  // const [result] = await client.labelDetection(`${items.imgSrc}`);
-  // let labels = result.labelAnnotations;
-  // //create object with all names and scores for labels
-  // let labelAndScores = [];
-  // for (let i = 0; i < labels.length; i++) {
-  //   labelAndScores.push({
-  //     name: labels[i].description,
-  //     score: Math.round(labels[i].score * 100)
-  //   });
-  // }
   //adding to big query
   try {
     await bigQueryClient

@@ -70,18 +70,20 @@ async function scrapeInfiniteScrollItems(
   page,
   extractItems,
   itemTargetCount,
-  scrollDelay = 1500
+  scrollDelay = 1700
 ) {
   let items = [];
   try {
     let previousHeight;
     while (items.length < itemTargetCount) {
       items = await page.evaluate(extractItems);
+      console.log(items.length)
       previousHeight = await page.evaluate("document.body.scrollHeight");
       await page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
       await page.waitForFunction(
         `document.body.scrollHeight > ${previousHeight}`
       );
+      await page.wai
       await page.waitFor(scrollDelay);
     }
   } catch (e) {}
@@ -114,7 +116,7 @@ async function main() {
   await page.goto(links[i], { waitUntil: "networkidle2" , timeout: 120000});
 
   // Scroll and extract items from the page.
-  let items = await scrapeInfiniteScrollItems(page, extractItems, 4000);
+  let items = await scrapeInfiniteScrollItems(page, extractItems, 5000);
   await page.close();
   await browser.close();
   await scraping(items);}
@@ -447,4 +449,5 @@ async function scraping(items) {
   await browserScrape.close();
 }
  
-module.exports = main;
+//module.exports = main;
+main()
