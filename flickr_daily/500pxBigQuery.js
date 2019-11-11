@@ -111,18 +111,20 @@ async function main() {
   console.log("---------------------------------------------");
   console.log(links[i]);
   console.log("---------------------------------------------");
-  await page.goto(links[i], { waitUntil: "networkidle2" , timeout: 1200000});
+  await page.goto(links[i], { waitUntil: "networkidle2" , timeout: 120000});
 
   // Scroll and extract items from the page.
-  const items = await scrapeInfiniteScrollItems(page, extractItems, 50000);
+  let items = await scrapeInfiniteScrollItems(page, extractItems, 50000);
   await page.close();
-  await browser.close();}
+  await browser.close();
+  await scraping(items);}
+  
   catch(e){
     console.log(e)
   }
   
   //scraping
-  await scraping(items);
+  
 
   }
 }

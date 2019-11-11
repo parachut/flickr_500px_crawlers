@@ -8,8 +8,8 @@ const tableId = "posts";
 const puppeteer = require("puppeteer");
 var StartLink = `https://www.flickr.com/explore/2018/10/04`;
 
-const distance = 500;
-const delay = 100;
+const distance = 400;
+const delay = 300;
 
 //---------------------------------------------------------
 //             wait function
