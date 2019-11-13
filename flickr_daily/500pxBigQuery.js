@@ -6,7 +6,11 @@ const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
-const links =["https://500px.com/popular","https://500px.com/upcoming","https://500px.com/fresh"]
+const links = [
+  "https://500px.com/popular",
+  "https://500px.com/upcoming",
+  "https://500px.com/fresh"
+];
 //---------------------------------------------------------
 //             getting images links
 //---------------------------------------------------------
@@ -25,7 +29,8 @@ function extractItems() {
 //             reading labels and adding element to big query
 //---------------------------------------------------------
 async function runBigQuery(items) {
-  if (items.camera != "") {
+  if (items.camera != "" &&
+  items.camera !='') {
     //adding to big query
     try {
       await bigQueryClient
@@ -51,7 +56,7 @@ async function runBigQuery(items) {
             view: items.view,
             comments: items.comments,
             tags: items.tags,
-            url: items.url,
+            url: items.url
           }
         ]);
       console.log("Post Inserted");
@@ -77,13 +82,13 @@ async function scrapeInfiniteScrollItems(
     let previousHeight;
     while (items.length < itemTargetCount) {
       items = await page.evaluate(extractItems);
-      console.log(items.length)
+      console.log(items.length);
       previousHeight = await page.evaluate("document.body.scrollHeight");
       await page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
       await page.waitForFunction(
         `document.body.scrollHeight > ${previousHeight}`
       );
-      await page.wai
+      await page.wai;
       await page.waitFor(scrollDelay);
     }
   } catch (e) {}
@@ -93,13 +98,13 @@ async function scrapeInfiniteScrollItems(
 
 async function main() {
   // Set up browser and page.
-  for (let i = 0; i<links.length; i++){
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox"]
-  });
-  const page = await browser.newPage();
-  await page.setRequestInterception(true);
+  for (let i = 0; i < links.length; i++) {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox"]
+    });
+    const page = await browser.newPage();
+    await page.setRequestInterception(true);
 
     page.on("request", req => {
       const whitelist = ["document", "script", "xhr", "fetch"];
@@ -108,26 +113,23 @@ async function main() {
       }
       req.continue();
     });
-  // Navigate to the page.
-  try {
-  console.log("---------------------------------------------");
-  console.log(links[i]);
-  console.log("---------------------------------------------");
-  await page.goto(links[i], { waitUntil: "networkidle2" , timeout: 120000});
+    // Navigate to the page.
+    try {
+      console.log("---------------------------------------------");
+      console.log(links[i]);
+      console.log("---------------------------------------------");
+      await page.goto(links[i], { waitUntil: "networkidle2", timeout: 120000 });
 
-  // Scroll and extract items from the page.
-  let items = await scrapeInfiniteScrollItems(page, extractItems, 5000);
-  await page.close();
-  await browser.close();
-  await scraping(items);}
-  
-  catch(e){
-    console.log(e)
-  }
-  
-  //scraping
-  
+      // Scroll and extract items from the page.
+      let items = await scrapeInfiniteScrollItems(page, extractItems, 50);
+      await page.close();
+      await browser.close();
+      await scraping(items);
+    } catch (e) {
+      console.log(e);
+    }
 
+    //scraping
   }
 }
 
@@ -139,13 +141,13 @@ async function scraping(items) {
   const page = await browserScrape.newPage();
   await page.setRequestInterception(true);
 
-    page.on("request", req => {
-      const whitelist = ["document", "script", "xhr", "fetch"];
-      if (!whitelist.includes(req.resourceType())) {
-        return req.abort();
-      }
-      req.continue();
-    });
+  page.on("request", req => {
+    const whitelist = ["document", "script", "xhr", "fetch"];
+    if (!whitelist.includes(req.resourceType())) {
+      return req.abort();
+    }
+    req.continue();
+  });
 
   console.log("---------------------------------------------");
   console.log(items.length);
@@ -163,6 +165,15 @@ async function scraping(items) {
         waitUntil: "networkidle2",
         timeout: 120000
       });
+      await page
+      .waitForSelector
+      ('*[class^="Elements__PhotoDateTooltip"] p')
+      await page
+      .waitForSelector
+      ('*[data-id^="photo-gear"] p')
+
+      
+      
       let page500 = await page.evaluate(() => {
         //TITLE
         const title1 = document.querySelector("title");
@@ -418,26 +429,42 @@ async function scraping(items) {
           if (page500.gear[i].name.startsWith("ISO")) {
             page500.iso = parseInt(page500.gear[i].name.replace("ISO", ""));
           }
+          if (page500.gear[i].name.endsWith("∞s", "")) {
+            page500.s = null;
+          }
           if (page500.gear[i].name.endsWith("s")) {
-            if (!page500.gear[i].name.endsWith("∞s", "")) {
-              page500.s =
-                Math.round(
-                  eval(page500.gear[i].name.replace("s", "")) * 10000
-                ) / 10000;
-            }
-            else{
+            if (page500.gear[i].name.endsWith("∞s")) {
               page500.s = null;
             }
+            else{
+            page500.s =
+              Math.round(eval(page500.gear[i].name.replace("∞", "").replace("s", "")) * 10000) /
+              10000;}
           }
           if (page500.lens === "0") {
             page500.lens = null;
+          }
+          if (page500.lens === "0mm") {
+            page500.lens = null;
+          }
+          if (page500.camera === "0") {
+            page500.camera = '';
+          }
+          if (page500.mm === 0) {
+            page500.mm = null;
+          }
+          if (page500.f === 0) {
+            page500.f = null;
+          }
+          if (page500.iso === 0) {
+            page500.iso = null;
           }
         }
       }
 
       delete page500.gear;
       console.log("/////////////////////////////");
-      console.log(page500.url);
+      console.log(page500);
       await runBigQuery(page500);
     } catch (e) {
       console.log(e);
@@ -448,6 +475,6 @@ async function scraping(items) {
   await page.close();
   await browserScrape.close();
 }
- 
-//module.exports = main;
-main()
+
+module.exports = main;
+//main();
