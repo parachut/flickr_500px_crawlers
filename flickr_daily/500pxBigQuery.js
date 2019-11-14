@@ -153,7 +153,7 @@ async function scraping(items) {
   console.log(items.length);
   console.log("---------------------------------------------");
 
-  for (let k = 0; k < items.length; k++) {
+  for (let k = 579; k < items.length; k++) {
     try {
       console.log("---------------------------------------------");
       console.log("Item number: " + k);
@@ -476,5 +476,5 @@ async function scraping(items) {
   await browserScrape.close();
 }
 
-module.exports = main;
-//main();
+//module.exports = main;
+main();
