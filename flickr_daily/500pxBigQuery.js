@@ -476,5 +476,5 @@ async function scraping(items) {
   await browserScrape.close();
 }
 
-//module.exports = main;
-main();
+module.exports = main;
+//main();

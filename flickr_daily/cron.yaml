@@ -3,7 +3,3 @@ cron:
   url: /flickr-daily
   schedule: every 24 hours
   target: crawlers
-- description: "Daily Crawl 500px"
-  url: /500px-daily
-  schedule: every 24 hours
-  target: crawlers

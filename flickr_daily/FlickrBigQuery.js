@@ -6,7 +6,8 @@ const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
-var StartLink = `https://www.flickr.com/explore/2018/10/04`;
+var StartLink = `https://www.flickr.com/explore/2018/04/22`;
+var endLink = `https://www.flickr.com/explore/2017/09/03`;
 
 const distance = 400;
 const delay = 300;
@@ -414,6 +415,7 @@ async function scrapePages(data) {
 async function main(Link) {
   Link = StartLink;
   //opening browser and page
+  if(Link!=endLink){
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox"]
@@ -467,7 +469,10 @@ async function main(Link) {
   //going to the next page
   StartLink = newLinkToGo;
 
-  main(newLinkToGo);
+  main(newLinkToGo);}
+  else{
+    console.log("Finished")
+  }
 }
 
 
