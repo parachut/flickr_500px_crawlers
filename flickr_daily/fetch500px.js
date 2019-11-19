@@ -87,7 +87,8 @@ try { let camerasCount=[]
       tryLast=null;
     }
     
-  photographers[i] = { firstName: tryFirst,
+  photographers[i] = { 
+    firstName: tryFirst,
   lastName: tryLast,
   id: data.photographer_profiles[i].id,
   contacts:data.photographer_profiles[i].user.contacts,
