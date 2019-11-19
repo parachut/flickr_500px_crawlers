@@ -179,8 +179,10 @@ async function scraping(items) {
         //TITLE
         const title1 = document.querySelector("title");
         let title;
+        
+        
         if (!title1) {
-          title = null;
+                 title = null;
         } else {
           title = title1.innerText.replace(" / 500px", "");
         }
