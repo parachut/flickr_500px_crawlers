@@ -6,7 +6,7 @@ const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
-var StartLink = `https://www.flickr.com/explore/2018/04/22`;
+var StartLink = `https://www.flickr.com/explore/2018/04/07`;
 var endLink = `https://www.flickr.com/explore/2017/09/03`;
 
 const distance = 400;
@@ -476,6 +476,6 @@ async function main(Link) {
 }
 
 
-module.exports =main;
+//module.exports =main;
 
-//main();
+main();

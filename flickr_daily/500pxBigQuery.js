@@ -7,7 +7,8 @@ const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
 const links = [
-  "https://500px.com/popular",
+  "https://500px.com/search?submit=Submit&q=2014&type=photos",
+  
   "https://500px.com/upcoming",
   "https://500px.com/fresh"
 ];
@@ -18,9 +19,9 @@ function extractItems() {
   const extractedElements = document.querySelectorAll(".photo_link");
 
   let items = [];
-  for (let element of extractedElements) {
+          for (let element of extractedElements) {
     items.push(element.getAttribute("href"));
-  }
+          }
 
   return items;
 }
@@ -476,5 +477,5 @@ async function scraping(items) {
   await browserScrape.close();
 }
 
-module.exports = main;
-//main();
+//module.exports = main;
+main();
