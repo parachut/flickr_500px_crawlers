@@ -21,18 +21,14 @@ const special = ["aerial",
 "urban",
 "wedding",
 "panorama"]
-async function types(){
+ƒ
+
+
+async function main(){
+
   for(let i =0; i<special.length; i++){
-
-
-    await main(special[i])
-  }
-
-}
-types()
-
-async function main(type){
-await fetch('https://api.500px.com/v1/photographers/search?q%5Buser_specialties_specialty_eq%5D='+type+'&include_thumbnail=true&thumbnail_sizes%5B%5D=3&page=1&rpp=100')
+    console.log(special[i])
+await fetch('https://api.500px.com/v1/photographers/search?q%5Buser_specialties_specialty_eq%5D='+special[i]+'&include_thumbnail=true&thumbnail_sizes%5B%5D=3&page=1&rpp=100')
   .then(response => response.json())
   .then(data => {
 
@@ -125,4 +121,5 @@ for (let j = photographers.length - 1; j >= 0; j--) {
 
   })
 
-}
+}}
+main()
