@@ -9,47 +9,38 @@ var FlickrAPI = require("flickrapi"),
   };
 
 
-  async function create() {
-FlickrAPI.authenticate(flickrOptions, function (error, flickr) {
+async function create() {
+  FlickrAPI.authenticate(flickrOptions, function (error, flickr) {
 
-  let photoID = 49096510598;
+    let photoID = 49096510598;
 
-  flickr.photos.getInfo(
-    {
-      photo_id: photoID
-    },
+    flickr.photos.getInfo(
+      {
+        photo_id: photoID
+      },
 
-function info (err, info) {
-      if (err) {
-        throw new Error(err);
+      function info(err, info) {
+        if (err) {
+          throw new Error(err);
+        }
+        one(info)
       }
-one(info)
-    }
-  );
+    );
  
-  flickr.photos.getExif(
-    {
-      photo_id: photoID
-    },
-  function exif (err, exif) {
+    flickr.photos.getExif(
+      {
+        photo_id: photoID
+      },
+      function exif(err, exif) {
       
-      if (err) {
-        throw new Error(err);
+        if (err) {
+          throw new Error(err);
+        }
+        two(exif)
       }
- two(exif)
-    }
-  );
-  // const object3 = {...info, ...exif };
-  // console.log(object3);
-});
+    );
 
+  });
 
-
-function one(info){
-
-}
-function two(exif) {
-  
-}
-
+    
 }
