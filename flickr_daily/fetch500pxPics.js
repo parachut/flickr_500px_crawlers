@@ -1,6 +1,6 @@
 var fs = require("fs");
 const jsonFetch = require("json-fetch");
-const folk = require("./AllGroups.json")
+//const folk = require("./AllGroups.json") <= need a file with folk id and name
 
 
 let pageNumber;
