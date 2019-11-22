@@ -22,6 +22,18 @@ const special = [
   "wedding",
   "panorama"
 ];
+
+let fileName = "../Photographers-Directory-JSON/directory.json";
+let i = 1;
+let startFile = []
+fs.writeFile(
+  "../Photographers-Directory-JSON/directory.json",
+   JSON.stringify(startFile, null, 2),
+   err =>
+     err
+       ? console.error("Data not written", err)
+       : console.log("Data written")
+ );
 async function wait(ms) {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
@@ -79,17 +91,6 @@ async function main2(pageNumbers, special) {
   }
 }
 
-let fileName = "../Photographers-Directory-JSON/directory.json";
-let i = 1;
-let startFile = []
-fs.writeFile(
-  "../Photographers-Directory-JSON/directory.json",
-   JSON.stringify(startFile, null, 2),
-   err =>
-     err
-       ? console.error("Data not written", err)
-       : console.log("Data written")
- );
 async function save(json, q) {
   let file = [];
   
