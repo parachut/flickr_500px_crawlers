@@ -6,7 +6,7 @@ const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
-var StartLink = `https://www.flickr.com/explore/2018/12/30`;
+var StartLink = `https://www.flickr.com/explore/2018/10/27`;
 var endLink = `https://www.flickr.com/explore/2017/09/03`;
 
 const distance = 400;
@@ -272,7 +272,8 @@ function scrape() {
     f = null;
   } else {
     fS = fString.innerText;
-    f = parseFloat(fS.replace("ƒ/", ""));
+    let fr = parseFloat(fS.replace("ƒ/", ""));
+    f = Math.round(fr * 100) / 100;
   }
 
   //mm
@@ -422,7 +423,7 @@ async function scrapePages(data) {
 
       let scraping = await pageScrape.evaluate(scrape);
       if (scraping.camera != "") {
-        console.log(scraping);
+        // console.log(scraping);
         await runBigQuery(scraping);
         await wait(2000);
       } else {

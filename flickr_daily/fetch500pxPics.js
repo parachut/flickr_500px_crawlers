@@ -4,8 +4,6 @@ const jsonFetch = require("json-fetch");
 const mongo = require("mongodb").MongoClient;
 const url = "mongodb://localhost:27017";
 
-
-
 async function wait(ms) {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
@@ -25,14 +23,16 @@ async function main() {
       }
       const db = client.db("groupsID");
 
-      const collection = db.collection("members_IDs");
+      const collection = db.collection("groups_members_IDs");
 
       collection.find().toArray(async (err, items) => {
-        for (let i = 0; i < items.length; i++) {
-          let memberID = items[i].id
+        for (let i = 6042; i < items.length; i++) {
+          console.log(items.length);
+          let memberID = items[i].id;
           let pageNumber;
           console.log("-------------------------------");
           console.log("Folk ID: " + memberID);
+          console.log("Member  number: " + i);
 
           await pageNumbers(memberID);
 
@@ -49,12 +49,10 @@ async function main() {
                   console.log(pageNumber);
                   console.log("-------------------------------");
                 });
-              
-              
             } catch {
               console.log("Try Again!");
               await wait(20000);
-              await pageNumber(id);
+              await pageNumbers(id);
             }
             // await main2(pageNumber, id);
             //   await wait(20000);
@@ -68,7 +66,6 @@ async function main() {
 }
 
 async function main2(pageNumbers, id) {
-
   try {
     for (let q = 1; q <= pageNumbers; q++) {
       console.log("-------------------------------");
@@ -106,41 +103,48 @@ async function main2(pageNumbers, id) {
 
                   for (let i = 0; i < data.photos.length; i++) {
                     try {
-                      if(data.photos[i].camera!='')
-                      {collection.insertOne(
-                        {
-                          id: data.photos[i].id,
-                          taken_at: data.photos[i].taken_at,
-                          rating: data.photos[i].rating,
-                          images: data.photos[i].images[0].https_url,
-                          name: data.photos[i].name,
-                          description: data.photos[i].description,
-                          shutter_speed: data.photos[i].shutter_speed,
-                          focal_length: data.photos[i].focal_length,
-                          aperture: data.photos[i].aperture,
-                          camera: data.photos[i].camera,
-                          lens: data.photos[i].lens,
-                          iso: data.photos[i].iso,
-                          location: data.photos[i].location,
-                          latitude: data.photos[i].latitude,
-                          longitude: data.photos[i].longitude,
-                          liked: data.photos[i].liked,
-                          comments_count: data.photos[i].comments_count,
-                          votes_count: data.photos[i].votes_count,
-                          times_viewed: data.photos[i].times_viewed,
-                          feature: data.photos[i].feature,
-                          category: data.photos[i].category,
-                          tags: data.photos[i].tags
-                        },
-                        (err, result) => {
-                          if (err) {
-                            console.log("Duplicate");
-                          } else {
-                            console.log("Insert");
-                          }
-                          client.close();
+                      if (data.photos[i].camera != "") {
+                        if (data.photos[i].camera != null) {
+                          collection.insertOne(
+                            {
+                              id: data.photos[i].id,
+                              taken_at: data.photos[i].taken_at,
+                              rating: data.photos[i].rating,
+                              images: data.photos[i].images[0].https_url,
+                              name: data.photos[i].name,
+                              description: data.photos[i].description,
+                              shutter_speed: data.photos[i].shutter_speed,
+                              focal_length: data.photos[i].focal_length,
+                              aperture: data.photos[i].aperture,
+                              camera: data.photos[i].camera,
+                              lens: data.photos[i].lens,
+                              iso: data.photos[i].iso,
+                              location: data.photos[i].location,
+                              latitude: data.photos[i].latitude,
+                              longitude: data.photos[i].longitude,
+
+                              comments_count: data.photos[i].comments_count,
+                              votes_count: data.photos[i].votes_count,
+                              times_viewed: data.photos[i].times_viewed,
+                              feature: data.photos[i].feature,
+                              category: data.photos[i].category,
+                              tags: data.photos[i].tags
+                            },
+                            (err, result) => {
+                              if (err) {
+                                console.log("Duplicate");
+                              } else {
+                                console.log("Insert");
+                              }
+                              client.close();
+                            }
+                          );
+                        } else {
+                          console.log("No cam");
                         }
-                      )};
+                      } else {
+                        console.log("No cam");
+                      }
                     } catch (e) {
                       console.log("Something is up");
                     }
