@@ -49,7 +49,7 @@ async function main() {
                   console.log(pageNumber);
                   console.log("-------------------------------");
                 });
-            } catch {
+            } catch (e) {
               console.log("Try Again!");
               await wait(20000);
               await pageNumbers(id);
