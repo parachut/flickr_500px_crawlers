@@ -5,18 +5,6 @@ let pageNumber;
 const mongo = require("mongodb").MongoClient;
 const url = "mongodb://localhost:27017";
 
-// let fileName = "../Photographers-Groups-JSON/directory14.json";
-//let i = 1;
-// let startFile = []
-// fs.writeFile(
-//   "../Photographers-Groups-JSON/directory14.json",
-//    JSON.stringify(startFile ),
-//    err =>
-//      err
-//        ? console.error("Data not written", err)
-//        : console.log("Data written")
-//  );
-
 async function wait(ms) {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
@@ -136,9 +124,7 @@ async function save(IDs) {
 
       const collection = db.collection("groups_members_IDs");
 
-      // collection.find().toArray((err, items) => {
-      //     console.log(items)
-      // })
+  
       for (let i = 0; i < IDs.length; i++) {
         collection.insertOne({ id: IDs[i] }, (err, result) => {
           if (err) {
@@ -151,41 +137,5 @@ async function save(IDs) {
       }
     }
   );
-  //   let file = [];
-
-  //  await fs.readFile(fileName, function(err, data) {
-  //     var openedJson = JSON.parse(fs.readFileSync(fileName, "utf8"));
-
-  //     for (let j = json.length - 1; j >= 0; j--) {
-  //       openedJson.unshift(json[j]);
-  //     }
-  //     console.log("Folks alreday in: "+openedJson.length);
-  //     fs.writeFile(fileName, JSON.stringify(openedJson), err =>
-  //     err
-  //       ? console.error("Data not written", err)
-  //       : console.log("Data written")
-  //   );
-  //   });
-
-  //   await fs.stat(fileName, (err, stats) => {
-  //     if (err) {
-  //       console.error(err);
-  //       return;
-  //     }
-  //     console.log(stats.size / 1024000);
-  //     if (stats.size / 1024000 > 25) {
-
-  //       console.log("Big");
-  //       let newI = i + 1
-  //       i = newI;
-  //       let fileNameNew = "../Photographers-Groups-JSON/directory14" + newI + ".json";
-  //       fileName = fileNameNew;
-  //       fs.writeFile(fileName, JSON.stringify(file), err =>
-  //         err
-  //           ? console.error("Data not written", err)
-  //           : console.log("Data written")
-  //       );
-  //     }
-  //   });
 }
 main();

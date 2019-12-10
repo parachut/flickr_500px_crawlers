@@ -25,6 +25,7 @@
     "json-fetch": "^8.0.0",
     "mongodb": "^3.3.4",
     "puppeteer": "^1.19.0",
+    "request": "^2.88.0",
     "time-stamp": "^2.2.0"
   },
   "devDependencies": {

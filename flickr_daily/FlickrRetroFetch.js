@@ -9,8 +9,20 @@ const tableId = "posts";
 const puppeteer = require("puppeteer");
 var StartLink = `https://www.flickr.com/explore/2018/04/07`;
 var endLink = `https://www.flickr.com/explore/2017/09/03`;
+// const Flickr = require("flickr-sdk");
+// const flickr = new Flickr(process.env.FLICKR_API_KEY);
+
 const Flickr = require("flickr-sdk");
-const flickr = new Flickr(process.env.FLICKR_API_KEY);
+
+var flickr = new Flickr(
+  Flickr.OAuth.createPlugin(
+    process.env.FLICKR_API_KEY,
+    process.env.FLICKR_SECRET,
+    process.env.FLICKR_ACCESS_TOKEN,
+    process.env.FLICKR_ACCESS_TOKEN_SECRET
+  )
+);
+
 const distance = 400;
 const delay = 300;
 //let fileName = "./directory.json";
