@@ -30,11 +30,11 @@ async function sendMembers() {
           console.error(err);
           return;
         }
-        const db = client.db("groupsID");
+        const db = client.db("flickr_500px");
         const collection = db.collection("flickr_members_ID");
 
         collection.find().toArray(async (err, items) => {
-          for (let i = 2; i < items.length; i++) {
+          for (let i = 11; i < items.length; i++) {
             let memberID = items[i].id;
 
             console.log("-------------------------------");
@@ -73,7 +73,7 @@ async function getMemberInfo(id) {
       await pagesLoop(i, numberOfPics, numberOfPages, id);
     }
   } catch (e) {
-    console.log("Need to try again to get info about the member");
+    console.log("Try Again - PAGES OF THE MAMBER");
     await getMemberInfo(id);
   }
 }
@@ -98,7 +98,7 @@ async function pagesLoop(i, pics, pages, id) {
 
     await wait(2000);
   } catch (e) {
-    console.log("Try Again - Number of Pictures");
+    console.log("Try Again - PAGE");
     await pagesLoop(i, pics, pages, id);
   }
 }
@@ -108,6 +108,7 @@ async function picturesLoop(getPicsNow) {
     await goOverPicture(i, getPicsNow);
   }
 }
+
 async function goOverPicture(i, getPicsNow) {
   try {
     const photoInfo = await flickr.photos
@@ -134,23 +135,32 @@ async function goOverPicture(i, getPicsNow) {
       })
       .then(res => JSON.parse(res.text));
 
-    //building object with all info
+    //BUILDING OBJECT WITH ALL INFORMATION
     const obj = {
       ...photoInfo.photo,
       ...photoExif.photo,
       ...getSize.sizes
     };
-
+    //CHECK IF THERE IS CAMERA
     if (obj.camera != "") {
+      if (obj.camera != null) {
       let getTags = [];
       let getExif = [];
-      let picLocation;
       let lensName;
       let urlOwner;
+      let valueF;
+      let valueISO;
+      let valueMM;
+      let valueS;
+      let location_coordinates;
+      let locationName;
+      let date_taken;
+
+      //GETTING TAGS
       for (const detail of obj.tags.tag) {
         getTags.push(detail.raw);
       }
-
+      //GETTING EXIF INFO
       for (const detail of obj.exif) {
         let exifObj = {
           label: detail.label,
@@ -158,31 +168,70 @@ async function goOverPicture(i, getPicsNow) {
         };
         getExif.push(exifObj);
       }
-
+      //FINDING VALUES IN EXIF INFO
       const getLens = getExif.find(x => x.label === "Lens Model");
       const getSizeOriginal = obj.size.find(x => x.label === "Original");
       const getF = getExif.find(x => x.label === "Aperture");
       const getISO = getExif.find(x => x.label === "ISO Speed");
       const getMM = getExif.find(x => x.label === "Focal Length");
       const getS = getExif.find(x => x.label === "Exposure");
-      const getLat = getExif.find(x => x.label === "GPS Latitude");
-      const getLong = getExif.find(x => x.label === "GPS Longitude");
-
+  
+      //GETTING F VALUE
+      if (getF) {
+        valueF = getF.value;
+        valueF = parseFloat(valueF.replace(" mm", ""))
+      }
+      //GETTING ISO VALUE 
+      if (getISO) {
+        valueISO = getISO.value;
+        valueISO=parseInt(valueISO)
+      }
+      //GETTING MM VALUE 
+      if (getMM) {
+        valueMM = getMM.value;
+        valueMM =parseInt(valueMM)
+      }
+      //GETTING S VALUE 
+      if (getS) {
+        valueS = getS.value;
+        valueS =Math.round(eval(valueS) * 10000) / 10000
+      }
+      //GETTING LENS NAME 
       if (getLens) {
         lensName = getLens.value;
       }
-      if (getLat && getLong) {
-        picLocation = { Latitude: getLat, Longitude: getLong };
-      }
-
+      //GETTING PICTURE SRC 
       if (getSizeOriginal) {
         originalSize = getSizeOriginal.source;
       } else {
         originalSize = obj.size.pop().source;
       }
+      //GETTING LOCATION COORDINATES
+      if (obj.location) {
+        location_coordinates = {
+          Latitude: obj.location.latitude,
+          Longitude: obj.location.longitude
+        };
+      }
+      //GETTING LOCATION NAME 
+      if (obj.location) {
+        try
+        {locationName =
+          obj.location.locality._content + ", " + obj.location.country._content;}catch(e){
+            try
+        {locationName =
+          obj.location.country._content;}catch(e){}
+          }
+      }
+      //GETTING DATE TAKEN
+      if (obj.dates.taken) {
+        date_taken = new Date(obj.dates.taken).getTime() / 1000;
+      }
 
-      urlOwner = "https://www.flickr.com/photos/" + obj.owner.path_alias;
+      //GETTING LINK TO THE PICTURE OWNER
+      urlOwner = "https://www.flickr.com/photos/" + obj.owner.path_alias+"/";
 
+      //ADDING TO MONGO
       mongo.connect(
         url,
         {
@@ -194,8 +243,8 @@ async function goOverPicture(i, getPicsNow) {
             console.error(err);
             return;
           }
-          const db = client.db("groupsID");
-          const collection = db.collection("flickr_pics_API");
+          const db = client.db("flickr_500px");
+          const collection = db.collection("flickr_pictures");
 
           collection.insertOne(
             {
@@ -206,16 +255,17 @@ async function goOverPicture(i, getPicsNow) {
               desc: obj.description._content,
               camera: obj.camera,
               lens: lensName,
-              location: picLocation,
-              date_taken: obj.dates.taken,
+              location_coordinates: location_coordinates,
+              location: locationName,
+              date_taken: date_taken,
               photographer: obj.owner.realname,
               photographer_link: urlOwner,
-              f: parseFloat(getF.value.replace(" mm", "")),
-              mm: parseInt(getMM.value),
-              iso: parseInt(getISO.value),
-              s: Math.round(eval(getS.value) * 10000) / 10000,
+              f: valueF,
+              mm: valueMM,
+              iso: valueISO,
+              s: valueS,
               likes: photoFaves.photo.total,
-              views: obj.views,
+              view: obj.views,
               comments: obj.comments._content,
               tags: getTags,
               url: obj.urls.url[0]._content,
@@ -227,17 +277,21 @@ async function goOverPicture(i, getPicsNow) {
               } else {
                 console.log("Insert");
               }
-              client.close();
+              
             }
           );
+          client.close();
         }
       );
+    }
     } else {
       console.log("No Camera");
     }
   } catch (e) {
-    console.log(e);
-    await goOverPicture(i, getPicsNow);
+    console.log(e.message);
+    console.log("Try Again - PICTURE");
+    if(e.message!='Permission denied'){
+    await goOverPicture(i, getPicsNow);}
   }
 }
 sendMembers();

@@ -31,12 +31,12 @@ async function main() {
         console.error(err);
         return;
       }
-      const db = client.db("groupsID");
+      const db = client.db("flickr_500px");
 
-      const collection = db.collection("groups_ID");
+      const collection = db.collection("flickr_groups_ID");
 
       collection.find().toArray(async (err, items) => {
-        for (let i = 9000; i < items.length; i++) {
+        for (let i = 82180; i < items.length; i++) {
           let groupID = items[i].id;
           let collectionLength = items.length;
 
@@ -75,8 +75,12 @@ async function getMembersGroupInfo(id) {
       await loopPages(i, members, pages, id);
     }
   } catch (e) {
-    console.log(e);
-    await getMembersGroupInfo(id);
+    
+    console.log(e.message)
+    if(e.message!="Group not found"){
+   //await wait(20000)
+    
+    await getMembersGroupInfo(id);}
   }
 }
 
@@ -96,9 +100,10 @@ async function loopPages(i, members, pages, id) {
         page: i
       })
       .then(res => JSON.parse(res.text));
-
-    for (let i = 0; i < photoInfo.members.member.length; i++) {
-      mongo.connect(
+      //console.log(photoInfo)
+    // for (let i = 0; i < photoInfo.members.member.length; i++) {
+      if(photoInfo.members.member){
+        mongo.connect(
         url,
         {
           useNewUrlParser: true,
@@ -109,10 +114,11 @@ async function loopPages(i, members, pages, id) {
             console.error(err);
             return;
           }
-          const db = client.db("groupsID");
+          const db = client.db("flickr_500px");
 
           const collection = db.collection("flickr_members_ID");
 
+          for (let i = 0; i < photoInfo.members.member.length; i++) {
           collection.insertOne(
             {
               id: photoInfo.members.member[i].nsid
@@ -123,13 +129,16 @@ async function loopPages(i, members, pages, id) {
               } else {
                 console.log("Insert");
               }
-              client.close();
+              
             }
-          );
+          );}
+
+          client.close();
         }
-      );
-    }
+      );}
+    // }
   } catch (e) {
+    console.log(e);
     console.log("Try page on more time");
     await loopPages(i, members, pages, id);
   }

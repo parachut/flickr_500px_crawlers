@@ -14,62 +14,62 @@ var flickr = new Flickr(
 );
 
 const qwertyArray = [
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "0",
-  "-",
-  "_",
-  "+",
-  "=",
-  "!",
-  "@",
-  "#",
-  "$",
-  "%",
-  "~",
-  "^",
-  "&",
-  "*",
-  "(",
-  ")",
-  "q",
-  "w",
-  "e",
-  "r",
-  "t",
-  "y",
-  "u",
-  "i",
-  "o",
-  "p",
-  "a",
-  "s",
-  "d",
-  "f",
-  "g",
-  "h",
-  "j",
-  "k",
-  "l",
-  "z",
-  "x",
-  "c",
-  "v",
-  "b",
-  "n",
-  "m",
-  "?",
-  "/",
-  "<",
-  ">",
-  ";",
+  // "1",
+  // "2",
+  // "3",
+  // "4",
+  // "5",
+  // "6",
+  // "7",
+  // "8",
+  // "9",
+  // "0",
+  // "-",
+  // "_",
+  // "+",
+  // "=",
+  // "!",
+  // "@",
+  // "#",
+  // "$",
+  // "%",
+  // "~",
+  // "^",
+  // "&",
+  // "*",
+  // "(",
+  // ")",
+  // "q",
+  // "w",
+  // "e",
+  // "r",
+  // "t",
+  // "y",
+  // "u",
+  // "i",
+  // "o",
+  // "p",
+  // "a",
+  // "s",
+  // "d",
+  // "f",
+  // "g",
+  // "h",
+  // "j",
+  // "k",
+  // "l",
+  // "z",
+  // "x",
+  // "c",
+  // "v",
+  // "b",
+  // "n",
+  // "m",
+  // "?",
+  // "/",
+  // "<",
+  // ">",
+  // ";",
   ":",
   "[",
   "]",
@@ -83,32 +83,39 @@ async function wait(ms) {
   });
 }
 async function groups() {
-  let numberOfPages;
+  
   for (const qwertyText of qwertyArray) {
-    try {
-      const photoInfo = await flickr.groups
-        .search({
-          text: qwertyText,
-          page: 1,
-          per_page: 100
-        })
-        .then(res => JSON.parse(res.text));
 
-      numberOfPages = photoInfo.groups.pages;
+    await character(qwertyText);
 
-      for (let i = 1; i < numberOfPages; i++) {
-        try {
-          await pagesLoop(i, numberOfPages, qwertyText);
-        } catch (e) {
-          console.log("Try Page Again");
-          await pagesLoop(i, numberOfPages, qwertyText);
-        }
-      }
-    } catch (e) {
-      console.log("Array Problem");
-    }
   }
 }
+
+async function character(qwertyText){
+  try {
+    let numberOfPages;
+    const photoInfo = await flickr.groups
+      .search({
+        text: qwertyText,
+        page: 1,
+        per_page: 100
+      })
+      .then(res => JSON.parse(res.text));
+
+    numberOfPages = photoInfo.groups.pages;
+
+    for (let i = 1; i < numberOfPages; i++) {
+      try {
+        await pagesLoop(i, numberOfPages, qwertyText);
+      } catch (e) {
+        console.log("Try Page Again");
+        await pagesLoop(i, numberOfPages, qwertyText);
+      }
+    }
+  } catch (e) {
+    console.log("Array Problem");
+    await character(qwertyText);
+  }}
 
 async function pagesLoop(i, numberOfPages, qwertyText) {
   console.log("-------------------------------");
@@ -125,17 +132,18 @@ async function pagesLoop(i, numberOfPages, qwertyText) {
       per_page: 100
     })
     .then(res => JSON.parse(res.text));
-  for (let i = 0; i < photoInfo.groups.group.length; i++) {
+ 
     try {
-      await membersLoop(i, photoInfo);
+      await membersLoop(photoInfo);
     } catch (e) {
       console.log("Try members again");
-      await membersLoop(i, photoInfo);
+      await wait (20000)
+      await membersLoop( photoInfo);
     }
-  }
+  
 }
 
-async function membersLoop(i, photoInfo) {
+async function membersLoop(photoInfo) {
   mongo.connect(
     url,
     {
@@ -147,10 +155,10 @@ async function membersLoop(i, photoInfo) {
         console.error(err);
         return;
       }
-      const db = client.db("groupsID");
+      const db = client.db("flickr_500px");
 
-      const collection = db.collection("groups_ID");
-
+      const collection = db.collection("flickr_groups_ID");
+      for (let i = 0; i < photoInfo.groups.group.length; i++) {
       collection.insertOne(
         {
           id: photoInfo.groups.group[i].nsid
@@ -161,9 +169,11 @@ async function membersLoop(i, photoInfo) {
           } else {
             console.log("Insert");
           }
-          client.close();
+          
         }
       );
+      }
+      client.close();
     }
   );
 }

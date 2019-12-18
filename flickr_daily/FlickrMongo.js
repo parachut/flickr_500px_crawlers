@@ -6,14 +6,14 @@ const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
-var StartLink = `https://www.flickr.com/explore/2018/10/27`;
-var endLink = `https://www.flickr.com/explore/2017/09/03`;
+var StartLink = `https://www.flickr.com/explore/2017/07/21`;
+var endLink = `https://www.flickr.com/explore/2016/12/30`;
 
 const distance = 400;
 const delay = 300;
 
 const mongo = require("mongodb").MongoClient;
-const url = "mongodb://localhost:27017/groupsID";
+const url = "mongodb://localhost:27017/";
 
 //---------------------------------------------------------
 //             wait function
@@ -35,9 +35,9 @@ async function runBigQuery(items) {
     },
     (err, client) => {
       if (err) throw err;
-      const db = client.db("groupsID");
+      const db = client.db("flickr_500px");
 
-      const collection = db.collection("flickr_pics");
+      const collection = db.collection("flickr_pictures");
 
       collection.insertOne(
         {
@@ -49,7 +49,7 @@ async function runBigQuery(items) {
           camera: items.camera,
           lens: items.lens,
           location: items.location,
-          date_taken: items.dateTaken,
+          date_taken: items.dateTaken/1000,
           photographer: items.photographer,
           photographer_link: items.photographerLink,
           f: items.f,
@@ -72,9 +72,10 @@ async function runBigQuery(items) {
           } else {
             console.log("Inserted");
           }
-          client.close();
+          
         }
       );
+      client.close();
     }
   );
 }
