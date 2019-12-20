@@ -20,7 +20,7 @@ async function main() {
         console.error(err);
         return;
       }
-      const db = client.db("flickr_500px");
+      const db = client.db;
       const collection = db.collection("groups_members_500px");
 
       collection.find().toArray(async (err, items) => {

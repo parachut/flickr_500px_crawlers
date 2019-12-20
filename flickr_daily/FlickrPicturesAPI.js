@@ -34,7 +34,7 @@ async function sendMembers() {
         const collection = db.collection("flickr_members_ID");
 
         collection.find().toArray(async (err, items) => {
-          for (let i = 11; i < items.length; i++) {
+          for (let i = 200; i < items.length; i++) {
             let memberID = items[i].id;
 
             console.log("-------------------------------");

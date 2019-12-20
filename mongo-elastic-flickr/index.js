@@ -11,7 +11,7 @@ const elasti = new Client({
 
 MongoClient.connect(url, async function(err, client) {
   // Create a collection we want to drop later
-  const col = client.db(dbName).collection("pictures_500px");
+  const col = client.db(dbName).collection("flickr_pictures");
 
   const cursor = col.find({
     $and: [
@@ -26,7 +26,6 @@ MongoClient.connect(url, async function(err, client) {
 
   let item;
   let i=1;
-  let j=1;
   while ((item = await cursor.next())) {
     const $set = {
       _namefound: true
@@ -85,9 +84,10 @@ MongoClient.connect(url, async function(err, client) {
           });
 
           cameraBody = body;
-  
+          
+          
           if (cameraBody.hits.hits[0]._score > 23) {
-            i+=1;
+           i+=1;
             console.log("camera", cameraBody.hits.hits[0], item.camera, i);
             $set.camera_name = cameraBody.hits.hits[0]._source.name;
           }
@@ -147,13 +147,11 @@ MongoClient.connect(url, async function(err, client) {
         });
 
         if (lensBody.hits.hits[0]._score > 23) {
-          j+=1
           console.log(
             "lens",
             lensBody.hits.hits[0],
             name,
-            lensBody.hits.max_score,
-            "Count: "+ j
+            lensBody.hits.max_score
           );
 
           $set.lens_name = lensBody.hits.hits[0]._source.name;
