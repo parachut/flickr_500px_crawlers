@@ -1,12 +1,11 @@
 const Client = require("@elastic/elasticsearch").Client;
-
+require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
 const url = "mongodb://localhost:27017";
 const dbName = "flickr_500px";
 
 const elasti = new Client({
-  node:
-    "https://avnadmin:dxceju1p3zefthxn@es-1c0c548d-parachut-222d.aivencloud.com:21267"
+  node:process.env.ELASTIC_KEY
 });
 
 MongoClient.connect(url, async function(err, client) {
@@ -26,6 +25,7 @@ MongoClient.connect(url, async function(err, client) {
 
   let item;
   let i=1;
+  let j =1;
   while ((item = await cursor.next())) {
     const $set = {
       _namefound: true
@@ -50,13 +50,12 @@ MongoClient.connect(url, async function(err, client) {
                   should: [
                     {
                       match: {
-                        aliasses: {
-                          query: item.camera.toLowerCase().replace("eos", ""),
-                          operator: 'and',
-                          fuzziness: 3,
-                          analyzer: 'standard',
-                        },
-                      },
+                        aliases: {
+                          query: item.camera.toLowerCase(),
+                          operator: "or",
+                          boost: 10
+                        }
+                      }
                     },
                     {
                       match: {
@@ -88,7 +87,7 @@ MongoClient.connect(url, async function(err, client) {
           
           if (cameraBody.hits.hits[0]._score > 23) {
            i+=1;
-            console.log("camera", cameraBody.hits.hits[0], item.camera, i);
+            console.log("camera", cameraBody.hits.hits[0], item.camera, "Count: "+ i);
             $set.camera_name = cameraBody.hits.hits[0]._source.name;
           }
         }
@@ -147,11 +146,13 @@ MongoClient.connect(url, async function(err, client) {
         });
 
         if (lensBody.hits.hits[0]._score > 23) {
+          j+=1
           console.log(
             "lens",
             lensBody.hits.hits[0],
             name,
-            lensBody.hits.max_score
+            lensBody.hits.max_score,
+            "Count: "+ j
           );
 
           $set.lens_name = lensBody.hits.hits[0]._source.name;

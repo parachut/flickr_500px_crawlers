@@ -20,11 +20,11 @@ async function main() {
         console.error(err);
         return;
       }
-      const db = client.db;
+      const db = client.db("flickr_500px");
       const collection = db.collection("groups_members_500px");
 
       collection.find().toArray(async (err, items) => {
-        for (let i = 52913; i < items.length; i++) {
+        for (let i = 0; i < items.length; i++) {
           let memberID = items[i].id;
           let members = items.length;
           console.log("-------------------------------");
@@ -106,43 +106,20 @@ async function picturesTry(id, q) {
             }
 
             const db = client.db("flickr_500px");
-            const collection = db.collection("pictures_500px");
+            const collection = db.collection("pictures_500px_IDs");
 
             for (let i = 0; i < data.photos.length; i++) {
-              let date_taken;
-              //let focal;
-              let iso;
+          
               try {
                 if (data.photos[i].camera != "") {
                   if (data.photos[i].camera != null) {
                     if (data.photos[i].camera != ' ') {
                       if (data.photos[i].camera != '  ') {
-                        date_taken = new Date(data.photos[i].taken_at).getTime()/1000
-                        //focal = parseFloat(data.photos[i].focal_length)
-                        iso = parseInt(data.photos[i].iso)
+                       
                     collection.insertOne(
                       {
                         id: data.photos[i].id,
-                        taken_at: date_taken,
-                        rating: data.photos[i].rating,
-                        images: data.photos[i].images[0].https_url,
-                        name: data.photos[i].name,
-                        description: data.photos[i].description,
-                        shutter_speed: data.photos[i].shutter_speed,
-                        focal_length: data.photos[i].focal_length,
-                        aperture: data.photos[i].aperture,
-                        camera: data.photos[i].camera,
-                        lens: data.photos[i].lens,
-                        iso: iso,
-                        location: data.photos[i].location,
-                        latitude: data.photos[i].latitude,
-                        longitude: data.photos[i].longitude,
-                        comments_count: data.photos[i].comments_count,
-                        votes_count: data.photos[i].votes_count,
-                        times_viewed: data.photos[i].times_viewed,
-                        feature: data.photos[i].feature,
-                        category: data.photos[i].category,
-                        tags: data.photos[i].tags
+                        member_id:data.photos[i].user_id
                       },
                       (err, result) => {
                         if (err) {

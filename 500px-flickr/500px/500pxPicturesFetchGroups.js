@@ -1,7 +1,7 @@
-var fs = require("fs");
-const jsonFetch = require("json-fetch");
 const mongo = require("mongodb").MongoClient;
 const url = "mongodb://localhost:27017";
+var fs = require("fs");
+const jsonFetch = require("json-fetch");
 
 async function wait(ms) {
   return new Promise(resolve => {
@@ -21,10 +21,10 @@ async function main() {
         return;
       }
       const db = client.db("flickr_500px");
-      const collection = db.collection("directory_members_500px");
+      const collection = db.collection("groups_members_500px");
 
       collection.find().toArray(async (err, items) => {
-        for (let i = 41769; i < items.length; i++) {
+        for (let i = 99761; i < items.length; i++) {
           let memberID = items[i].id;
           let members = items.length;
           console.log("-------------------------------");
@@ -32,7 +32,7 @@ async function main() {
           console.log("Member  number: " + i);
           console.log("Members Length: " + members);
 
-          await pageNumbers(memberID);
+          await userID(memberID);
           await wait(10000);
         }
         client.close();
@@ -40,8 +40,7 @@ async function main() {
     }
   );
 }
-
-async function pageNumbers(id) {
+async function userID(id) {
   try {
     let pageNumber;
     await fetch(
@@ -57,10 +56,11 @@ async function pageNumbers(id) {
         console.log("-------------------------------");
       });
     await main2(pageNumber, id);
-  } catch {
+  } catch (e) {
+    //console.log(e);
     console.log("Try Again User ID!");
     await wait(20000);
-    await pageNumbers(id);
+    await userID(id);
   }
 }
 
@@ -117,15 +117,13 @@ async function picturesTry(id, q) {
                   if (data.photos[i].camera != null) {
                     if (data.photos[i].camera != ' ') {
                       if (data.photos[i].camera != '  ') {
-
                         date_taken = new Date(data.photos[i].taken_at).getTime()/1000
                         //focal = parseFloat(data.photos[i].focal_length)
                         iso = parseInt(data.photos[i].iso)
-
                     collection.insertOne(
                       {
                         id: data.photos[i].id,
-                        taken_at: date_taken/1000,
+                        taken_at: date_taken/1000000,
                         rating: data.photos[i].rating,
                         images: data.photos[i].images[0].https_url,
                         name: data.photos[i].name,
@@ -139,7 +137,6 @@ async function picturesTry(id, q) {
                         location: data.photos[i].location,
                         latitude: data.photos[i].latitude,
                         longitude: data.photos[i].longitude,
-                        liked: data.photos[i].liked,
                         comments_count: data.photos[i].comments_count,
                         votes_count: data.photos[i].votes_count,
                         times_viewed: data.photos[i].times_viewed,
@@ -155,16 +152,18 @@ async function picturesTry(id, q) {
                         }
                       }
                     );
-                    }
-                  }
                   }
                 }
+                }
+                } 
               } catch (e) {
-                console.log("Something is up");
+                console.log("Something is up with Mongo");
               }
             }
             client.close();
           }
+
+
         );
       });
   } catch (e) {

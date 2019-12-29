@@ -6,8 +6,8 @@ const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
-var StartLink = `https://www.flickr.com/explore/2017/07/21`;
-var endLink = `https://www.flickr.com/explore/2016/12/30`;
+var StartLink = `https://www.flickr.com/explore/2016/07/12`;
+var endLink = `https://www.flickr.com/explore/2004/12/30`;
 
 const distance = 400;
 const delay = 300;
@@ -230,7 +230,7 @@ function scrape() {
   //SPECS
   let exifSpecs = [];
   for (let i = 0; i < exif.length; i++) {
-    exifSpecs[i] = { name: exif[i], value: exifValues[i] };
+    exifSpecs[i] = {label: exif[i], value: exifValues[i] };
   }
 
   //camera info
