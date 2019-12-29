@@ -57,10 +57,7 @@ async function runBigQuery(items) {
           iso: items.iso,
           s: items.s,
           likes: items.likes,
-
-          
           view: items.view,
-
           comments: items.comments,
           tags: items.tags,
           url: items.url,

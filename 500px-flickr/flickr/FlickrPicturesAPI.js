@@ -212,6 +212,11 @@ async function goOverPicture(i, getPicsNow) {
           Latitude: obj.location.latitude,
           Longitude: obj.location.longitude
         };
+      }else{
+        location_coordinates = {
+          Latitude: 0,
+          Longitude: 0
+        };
       }
       //GETTING LOCATION NAME 
       if (obj.location) {
