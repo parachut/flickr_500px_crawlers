@@ -24,7 +24,7 @@ async function main() {
       const collection = db.collection("groups_members_500px");
 
       collection.find().toArray(async (err, items) => {
-        for (let i = 99761; i < items.length; i++) {
+        for (let i = 273563; i < items.length; i++) {
           let memberID = items[i].id;
           let members = items.length;
           console.log("-------------------------------");
@@ -32,7 +32,7 @@ async function main() {
           console.log("Member  number: " + i);
           console.log("Members Length: " + members);
 
-          await userID(memberID);
+          await userID(memberID,i);
           await wait(10000);
         }
         client.close();
@@ -40,7 +40,7 @@ async function main() {
     }
   );
 }
-async function userID(id) {
+async function userID(id,i) {
   try {
     let pageNumber;
     await fetch(
@@ -55,27 +55,27 @@ async function userID(id) {
         console.log("Total Pages: " + pageNumber);
         console.log("-------------------------------");
       });
-    await main2(pageNumber, id);
+    await main2(pageNumber, id,i);
   } catch (e) {
     //console.log(e);
     console.log("Try Again User ID!");
     await wait(20000);
-    await userID(id);
+    await userID(id,i);
   }
 }
 
-async function main2(pageNumbers, id) {
+async function main2(pageNumbers, id,i) {
   try {
     for (let q = 1; q <= pageNumbers; q++) {
-      await picturesTry(id, q);
+      await picturesTry(id, q,i);
     }
   } catch (e) {
     console.log("Try again with the loop");
-    await main2(pageNumbers, id);
+    await main2(pageNumbers, id,i);
   }
 }
 
-async function picturesTry(id, q) {
+async function picturesTry(id, q, i) {
   try {
     await wait(3000);
     await fetch(
@@ -91,6 +91,7 @@ async function picturesTry(id, q) {
         console.log("Page#: " + q);
         console.log("Member ID: " + id);
         console.log("Number of pics: " + data.photos.length);
+        console.log("Mongo Number: " + i);
         console.log("-------------------------------");
 
         mongo.connect(
@@ -108,41 +109,41 @@ async function picturesTry(id, q) {
             const db = client.db("flickr_500px");
             const collection = db.collection("pictures_500px");
 
-            for (let i = 0; i < data.photos.length; i++) {
+            for (let j = 0; j < data.photos.length; j++) {
               let date_taken;
               //let focal;
               let iso;
               try {
-                if (data.photos[i].camera != "") {
-                  if (data.photos[i].camera != null) {
-                    if (data.photos[i].camera != ' ') {
-                      if (data.photos[i].camera != '  ') {
-                        date_taken = new Date(data.photos[i].taken_at).getTime()/1000
-                        //focal = parseFloat(data.photos[i].focal_length)
-                        iso = parseInt(data.photos[i].iso)
+                if (data.photos[j].camera != "") {
+                  if (data.photos[j].camera != null) {
+                    if (data.photos[j].camera != ' ') {
+                      if (data.photos[j].camera != '  ') {
+                        date_taken = new Date(data.photos[j].taken_at).getTime()/1000
+                        //focal = parseFloat(data.photos[j].focal_length)
+                        iso = parseInt(data.photos[j].iso)
                     collection.insertOne(
                       {
-                        id: data.photos[i].id,
-                        taken_at: date_taken/1000000,
-                        rating: data.photos[i].rating,
-                        images: data.photos[i].images[0].https_url,
-                        name: data.photos[i].name,
-                        description: data.photos[i].description,
-                        shutter_speed: data.photos[i].shutter_speed,
-                        focal_length: data.photos[i].focal_length,
-                        aperture: data.photos[i].aperture,
-                        camera: data.photos[i].camera,
-                        lens: data.photos[i].lens,
+                        id: data.photos[j].id,
+                        taken_at: date_taken/1000,
+                        rating: data.photos[j].rating,
+                        images: data.photos[j].images[0].https_url,
+                        name: data.photos[j].name,
+                        description: data.photos[j].description,
+                        shutter_speed: data.photos[j].shutter_speed,
+                        focal_length: data.photos[j].focal_length,
+                        aperture: data.photos[j].aperture,
+                        camera: data.photos[j].camera,
+                        lens: data.photos[j].lens,
                         iso: iso,
-                        location: data.photos[i].location,
-                        latitude: data.photos[i].latitude,
-                        longitude: data.photos[i].longitude,
-                        comments_count: data.photos[i].comments_count,
-                        votes_count: data.photos[i].votes_count,
-                        times_viewed: data.photos[i].times_viewed,
-                        feature: data.photos[i].feature,
-                        category: data.photos[i].category,
-                        tags: data.photos[i].tags
+                        location: data.photos[j].location,
+                        latitude: data.photos[j].latitude,
+                        longitude: data.photos[j].longitude,
+                        comments_count: data.photos[j].comments_count,
+                        votes_count: data.photos[j].votes_count,
+                        times_viewed: data.photos[j].times_viewed,
+                        feature: data.photos[j].feature,
+                        category: data.photos[j].category,
+                        tags: data.photos[j].tags
                       },
                       (err, result) => {
                         if (err) {
@@ -167,8 +168,10 @@ async function picturesTry(id, q) {
         );
       });
   } catch (e) {
+    console.log(e.message)
+    if(e.message !="Cannot read property 'length' of undefined"){
     console.log("Try Again Pictures Page");
-    await picturesTry(id, q);
+    await picturesTry(id, q, i);}
   }
 }
 main();

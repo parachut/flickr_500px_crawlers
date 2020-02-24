@@ -24,7 +24,7 @@ async function main() {
       const collection = db.collection("directory_members_500px");
 
       collection.find().toArray(async (err, items) => {
-        for (let i = 0; i < items.length; i++) {
+        for (let i =0; i < items.length; i++) {
           let memberID = items[i].id;
           let members = items.length;
           console.log("-------------------------------");
@@ -116,11 +116,17 @@ async function picturesTry(id, q) {
                   if (data.photos[i].camera != null) {
                     if (data.photos[i].camera != ' ') {
                       if (data.photos[i].camera != '  ') {
-
+                        let date_taken;
+                        date_taken = new Date(data.photos[i].taken_at).getTime()/1000
+                        let date_created;
+                        date_created = new Date(data.photos[i].created_at).getTime()/1000
                     collection.insertOne(
                       {
                         id: data.photos[i].id,
-                        member_id:data.photos[i].user_id
+                        member_id:data.photos[i].user_id,
+                        taken_at:date_taken,
+                        date_created:date_created
+                     
                        
                       },
                       (err, result) => {

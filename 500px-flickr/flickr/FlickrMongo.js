@@ -6,7 +6,7 @@ const bigQueryClient = new BigQuery();
 const datasetId = "crawler_500px_flickr";
 const tableId = "posts";
 const puppeteer = require("puppeteer");
-var StartLink = `https://www.flickr.com/explore/2016/07/12`;
+var StartLink = `https://www.flickr.com/explore/2010/07/16`;
 var endLink = `https://www.flickr.com/explore/2004/12/30`;
 
 const distance = 400;
@@ -352,7 +352,11 @@ function scrape() {
   }
 
   let url = window.location.href;
-
+  let location_coordinates;
+  location_coordinates = {
+    Latitude: 0,
+    Longitude: 0
+  };
   return {
     id,
     title,
@@ -373,7 +377,8 @@ function scrape() {
     comments,
     tags,
     url: url,
-    exifSpecs
+    exifSpecs,
+    location_coordinates
   };
 }
 //---------------------------------------------------------
