@@ -1,6 +1,6 @@
 var fs = require("fs");
 const jsonFetch = require("json-fetch");
-const groups = require("./AllGroups.json");
+const groups = require("./AllGroups.json.js");
 let pageNumber;
 const mongo = require("mongodb").MongoClient;
 const url = "mongodb://localhost:27017";

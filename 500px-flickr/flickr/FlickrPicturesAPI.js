@@ -34,7 +34,7 @@ async function sendMembers() {
         const collection = db.collection("flickr_members_ID");
 
         collection.find().toArray(async (err, items) => {
-          for (let i = 200; i < items.length; i++) {
+          for (let i = 2050; i < items.length; i++) {
             let memberID = items[i].id;
 
             console.log("-------------------------------");
@@ -73,6 +73,7 @@ async function getMemberInfo(id) {
       await pagesLoop(i, numberOfPics, numberOfPages, id);
     }
   } catch (e) {
+    console.log(e.message);
     console.log("Try Again - PAGES OF THE MAMBER");
     await getMemberInfo(id);
   }
@@ -98,6 +99,7 @@ async function pagesLoop(i, pics, pages, id) {
 
     await wait(2000);
   } catch (e) {
+    console.log(e.message)
     console.log("Try Again - PAGE");
     await pagesLoop(i, pics, pages, id);
   }
@@ -212,6 +214,11 @@ async function goOverPicture(i, getPicsNow) {
           Latitude: obj.location.latitude,
           Longitude: obj.location.longitude
         };
+      }else{
+        location_coordinates = {
+          Latitude: 0,
+          Longitude: 0
+        };
       }
       //GETTING LOCATION NAME 
       if (obj.location) {
@@ -291,7 +298,10 @@ async function goOverPicture(i, getPicsNow) {
     console.log(e.message);
     console.log("Try Again - PICTURE");
     if(e.message!='Permission denied'){
-    await goOverPicture(i, getPicsNow);}
+      if(e.message!='Inf is not defined'){
+        await goOverPicture(i, getPicsNow);}
+    }
+   
   }
 }
 sendMembers();
