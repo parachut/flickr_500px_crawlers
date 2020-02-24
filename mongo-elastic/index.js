@@ -2,16 +2,16 @@ const Client = require("@elastic/elasticsearch").Client;
 
 const MongoClient = require("mongodb").MongoClient;
 const url = "mongodb://localhost:27017";
-const dbName = "flickr_500px";
-
+const dbName = "groupsID";
+// "https://avnadmin:dxceju1p3zefthxn@es-1c0c548d-parachut-222d.aivencloud.com:21267"
 const elasti = new Client({
   node:
-    "https://avnadmin:dxceju1p3zefthxn@es-1c0c548d-parachut-222d.aivencloud.com:21267"
+    "https://elastic:acNbgQRsl0OUznitAboYVss6@cb0a068fb8d64b3294ede898764e8f96.us-central1.gcp.cloud.es.io:9243"
 });
 
 MongoClient.connect(url, async function(err, client) {
   // Create a collection we want to drop later
-  const col = client.db(dbName).collection("pictures_500px");
+  const col = client.db(dbName).collection("flickr_pics_API");
 
   const cursor = col.find({
     $and: [
@@ -25,140 +25,182 @@ MongoClient.connect(url, async function(err, client) {
   });
 
   let item;
-  let i=1;
-  let j=1;
+  let i = 0;
+  let j = 0;
   while ((item = await cursor.next())) {
     const $set = {
       _namefound: true
     };
 
-    
     let cameraBody;
 
     try {
       if (item.camera && item.camera.trim().length) {
-        if (item.camera.toLowerCase().search('5d') === -1 || item.camera.toLowerCase().search('i') !== -1) {
+        console.log("Just show: ", item.camera);
+        //let name = item.camera.toLowerCase();
+        if (
+          item.camera.toLowerCase().search("panasonic lumix dmc-fz00") === -1
+        ) {
+          console.log("Just show again : ", item.camera.toLowerCase());
+          //name = name.replace("Digital", "");
           const { body } = await elasti.search({
             index: "products",
             body: {
               query: {
                 bool: {
-                  must: {
-                    term: {
-                      camera: true
+                  filter: {
+                    bool: {
+                      must: [{ match: { "category.name": "Camera" } }]
                     }
                   },
-                  should: [
+                  must: [
                     {
                       match: {
-                        aliasses: {
-                          query: item.camera.toLowerCase().replace("eos", ""),
-                          operator: 'and',
-                          fuzziness: 3,
-                          analyzer: 'standard',
-                        },
-                      },
-                    },
-                    {
-                      match: {
-                        name: {
-                          query: item.camera.toLowerCase().replace("eos", ""),
-                          operator: 'or',
-                          fuzziness: 3,
-                          analyzer: 'standard',
-                        },
-                      },
-                    },
-                    {
-                      match: {
-                        name: {
-                          query: item.camera.toLowerCase().replace("eos", ""),
-                          operator: 'and',
-                          boost: 2,
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
+                        aliases: item.camera.toLowerCase()
+                        // aliases: item.camera.toLowerCase()
+                      }
+                    }
+                  ]
+                }
+
+                // multi_match: {
+                //   fields: [
+                //     "name",
+                //     "aliases",
+                //     "name._2gram",
+                //     "name._3gram",
+                //     "aliases._2gram",
+                //     "aliases._3gram"
+                //   ],
+                //   query: item.camera.toLowerCase(),
+                //   // must: {
+                //   //   term: {
+                //   //     camera: true
+                //   //   }
+                //   // },
+                //   type: "best_fields",
+                //   tie_breaker: 3
+                // },
+
+                // multi_match: {
+                //   fields: ["name^1.5", "aliases^7"],
+                //   query: item.camera.toLowerCase(),
+                //   type: "best_fields"
+                // }
+              }
             }
           });
-
           cameraBody = body;
-  
-          if (cameraBody.hits.hits[0]._score > 23) {
-            i+=1;
-            console.log("camera", cameraBody.hits.hits[0], item.camera, i);
-            $set.camera_name = cameraBody.hits.hits[0]._source.name;
-          }
         }
-        
+        // if (cameraBody.hits.hits[0]._source.name === item.camera) {
+        //   console.log("perfect match");
+        //   cameraBody.hits.hits[0]._score = cameraBody.hits.hits[0]._score + 5;
+        // }
+
+        // if (cameraBody.hits.hits[0]._score > 27) {
+        //   i += 1;
+        //   console.log(
+        //     "camera",
+        //     cameraBody.hits.hits[0],
+        //     item.camera,
+        //     cameraBody.hits.hits[0]._score,
+        //     i
+        //   );
+        //   $set.camera_name = cameraBody.hits.hits[0]._source.name;
+        // } else {
+        //   console.log(
+        //     cameraBody.hits.hits[0]._score,
+        //     item.camera,
+        //     cameraBody.hits.hits[0]._source.name
+        //   );
+        // }
+        // }
       }
 
-      if (item.lens && item.lens.trim().length) {
-        let name = item.lens.toLowerCase();
+      // if (item.lens && item.lens.trim().length) {
+      //   let name = item.lens.toLowerCase();
 
-        if (typeof cameraBody !== "undefined") {
-          const brand = cameraBody.hits.hits[0]
-            ? cameraBody.hits.hits[0]._source.brand.name
-            : null;
+      //   if (typeof cameraBody !== "undefined") {
+      //     const brand = cameraBody.hits.hits[0]
+      //       ? cameraBody.hits.hits[0]._source.brand.name
+      //       : null;
 
-          if (brand && name.search(brand.toLowerCase()) === -1) {
-            name = cameraBody.hits.hits[0]._source.brand.name + " " + name;
-          }
-        }
+      //     console.log(brand);
+      //     console.log(name);
+      //     if (brand && name.search(brand.toLowerCase()) === -1) {
+      //       //  console.log("Confirm: ", brand, name);
 
-        name = name.replace(/[^0-9](?=[0-9])/g, '$& ')
+      //       if (name.includes("canon") === true) {
+      //         name = name.replace(/[^0-9](?=[0-9])/g, "$& ");
+      //       } else if (name.includes("panasonic") === true) {
+      //         name = name.replace(/[^0-9](?=[0-9])/g, "$& ");
+      //       } else if (name.includes("nikon") === true) {
+      //         name = name.replace(/[^0-9](?=[0-9])/g, "$& ");
+      //       } else if (name.includes("sony") === true) {
+      //         name = name.replace(/[^0-9](?=[0-9])/g, "$& ");
+      //       } else {
+      //         name = cameraBody.hits.hits[0]._source.brand.name + " " + name;
+      //         name = name.replace(/[^0-9](?=[0-9])/g, "$& ");
+      //       }
+      //     }
+      //   }
 
-        const { body: lensBody } = await elasti.search({
-          index: "products",
-          body: {
-            query: {
-              bool: {
-                must: {
-                  term: {
-                    lens: true
-                  }
-                },
-                should: [
-                  {
-                    match: {
-                      name: {
-                        query: name,
-                        operator: 'or',
-                        fuzziness: 3,
-                        analyzer: 'standard',
-                      },
-                    },
-                  },
-                  {
-                    match: {
-                      name: {
-                        query: name,
-                        operator: 'and',
-                        boost: 2,
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-          }
-        });
+      //   const { body: lensBody } = await elasti.search({
+      //     index: "products",
+      //     body: {
+      //       query: {
+      //         multi_match: {
+      //           fields: [
+      //             "name^1",
+      //             "aliases",
+      //             "name._2gram",
+      //             "name._3gram",
+      //             "aliases._2gram",
+      //             "aliases._3gram"
+      //           ],
+      //           query: name,
+      //           type: "best_fields"
+      //           // tie_breaker: 0.3
+      //         }
+      //       }
+      //     }
+      //   });
 
-        if (lensBody.hits.hits[0]._score > 23) {
-          j+=1
-          console.log(
-            "lens",
-            lensBody.hits.hits[0],
-            name,
-            lensBody.hits.max_score,
-            "Count: "+ j
-          );
+      //   if (
+      //     lensBody.hits.hits[0]._source.name.toLowerCase() ===
+      //     item.lens.toLowerCase()
+      //   ) {
+      //     console.log("perfect match");
+      //     lensBody.hits.hits[0]._score = lensBody.hits.hits[0]._score + 5;
+      //   }
+      //   if (
+      //     cameraBody.hits.hits[0]._source.brand.name + " " + name ===
+      //     lensBody.hits.hits[0]._source.name.toLowerCase()
+      //   ) {
+      //     console.log("perfect match");
+      //     lensBody.hits.hits[0]._score = lensBody.hits.hits[0]._score + 5;
+      //   }
 
-          $set.lens_name = lensBody.hits.hits[0]._source.name;
-        }
-      }
+      //   if (lensBody.hits.hits[0]._score > 27) {
+      //     j += 1;
+      //     console.log(
+      //       "lens",
+      //       lensBody.hits.hits[0],
+      //       name,
+      //       lensBody.hits.max_score,
+      //       lensBody.hits.hits[0]._source.name,
+      //       "Count: " + j
+      //     );
+
+      //     $set.lens_name = lensBody.hits.hits[0]._source.name;
+      //   } else {
+      //     console.log(
+      //       name,
+      //       lensBody.hits.max_score,
+      //       lensBody.hits.hits[0]._source.name
+      //     );
+      //   }
+      // }
 
       await col.updateOne(
         { _id: item._id },
